@@ -1,14 +1,12 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import {
   LayoutDashboard,
   Database,
-  FileText,
   User,
   LogOut,
   Brain,
 } from 'lucide-react';
 import { SharedLayout } from "./SharedLayout";
-import { COLORS } from '@/styles/colors';
 
 interface AITrainerLayoutWrapperProps {
   children: ReactNode;

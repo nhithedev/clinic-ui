@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useManager } from './manager-context';
 import { KPICard } from './layout/KPICard';
 import { NotificationBadge } from './layout/NotificationBadge';
-import { RightSidebarCalendar } from './layout/RightSidebarCalendar';
 import { COLORS } from '@/styles/colors';
 import { Users, Stethoscope, Activity, X } from 'lucide-react';
 
@@ -29,13 +28,6 @@ export function ManagerDashboard() {
   const visitChangePercent = yesterdayActivities.length > 0 
     ? Math.round(((todayActivities.length - yesterdayActivities.length) / yesterdayActivities.length) * 100)
     : 0;
-
-  const lastWeekActivities = activities.filter(a => {
-    const activityDate = new Date(a.time);
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    return activityDate >= oneWeekAgo;
-  });
 
   const kpiStats = [
     {
@@ -82,65 +74,7 @@ export function ManagerDashboard() {
     return `${diffDays} ngày trước`;
   };
 
-  // Get activities for selected date
-  const getActivitiesForDate = (date: Date | null) => {
-    if (!date) return [];
-    return activities.filter(a => {
-      const activityDate = new Date(a.time).toDateString();
-      return activityDate === date.toDateString();
-    });
-  };
-
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-
-  // Convert activities to include id for calendar
-  const activitiesWithId = activities.map((act, idx) => ({
-    ...act,
-    id: idx,
-  }));
-
-  const rightSidebarContent = (
-    <div className="space-y-6">
-      <RightSidebarCalendar
-        activities={activitiesWithId}
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-      />
-      
-      {selectedDate && (
-        <div>
-          <h3 className="font-semibold mb-4" style={{ color: COLORS.TEXT_PRIMARY }}>
-            Hoạt động ngày {selectedDate.toLocaleDateString('vi-VN')}
-          </h3>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {getActivitiesForDate(selectedDate).length > 0 ? (
-              getActivitiesForDate(selectedDate).map((activity, idx) => (
-                <div key={idx} className="p-3 rounded-3xl" style={{ backgroundColor: COLORS.GRAY }}>
-                  <div className="flex items-start gap-3">
-                    <div className={`w-3 h-3 rounded-full mt-2 ${getActivityColor(activity.action)}`}></div>
-                    <div>
-                      <p style={{ color: COLORS.TEXT_PRIMARY }} className="text-sm font-medium">
-                        {activity.action}
-                      </p>
-                      <p style={{ color: COLORS.TEXT_SECONDARY }} className="text-xs">
-                        {new Date(activity.time).toLocaleTimeString('vi-VN')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p style={{ color: COLORS.TEXT_SECONDARY }} className="text-sm text-center py-4">
-                Không có hoạt động
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       {/* KPI Cards Grid */}

@@ -5,7 +5,6 @@ import {
   CalendarDays,
   UserCircle,
   LogOut,
-  Building2,
 } from 'lucide-react';
 import { SharedLayout } from "./SharedLayout";
 import { RightSidebarCalendar } from "./RightSidebarCalendar";
