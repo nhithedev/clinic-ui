@@ -17,10 +17,9 @@ import {
   LayoutDashboard,
   UserCircle,
   Settings,
-  BarChart
 } from 'lucide-react';
-import { SharedLayout } from './src/app/components/layout/SharedLayout';
-import { COLORS } from './src/styles/colors';
+import { SharedLayout } from '@/app/components/layout/SharedLayout';
+import { COLORS } from '@/styles/colors';
 
 /**
  * EXAMPLE 1: Doctor Dashboard Integration
@@ -38,27 +37,33 @@ export const DoctorDashboardExample = () => {
     },
     {
       id: 'appointments',
-      label: 'Appointments',
+      label: 'Quản lý lịch hẹn',
       icon: <CalendarDays size={20} />,
       onClick: (id: string) => setActivePage(id),
     },
     {
-      id: 'medical-records',
-      label: 'Medical Records',
+      id: 'records',
+      label: 'Hồ sơ khám',
       icon: <BookOpen size={20} />,
       onClick: (id: string) => setActivePage(id),
     },
     {
       id: 'consultations',
-      label: 'Consultations',
+      label: 'Giải đáp thắc mắc',
       icon: <MessageSquare size={20} />,
       onClick: (id: string) => setActivePage(id),
     },
     {
       id: 'profile',
-      label: 'Profile',
+      label: 'Hồ sơ cá nhân',
       icon: <UserCircle size={20} />,
       onClick: (id: string) => setActivePage(id),
+    },
+    {
+      id: 'logout',
+      label: 'Đăng xuất',
+      icon: <UserCircle size={20} />,
+      onClick: () => {},
     },
   ];
 
@@ -160,36 +165,36 @@ export const CustomCardExample = () => {
 /**
  * EXAMPLE 3: Manager Sidebar Configuration
  */
-export const getManagerSidebarItems = (onNavigate: (page: string) => void) => [
+export const getManagerSidebarItems = (onNavigate: (page: string) => void, onLogout: () => void) => [
   {
     id: 'dashboard',
     label: 'Dashboard',
     icon: <LayoutDashboard size={20} />,
-    onClick: (id: string) => onNavigate('dashboard'),
+    onClick: () => onNavigate('dashboard'),
   },
   {
     id: 'accounts',
-    label: 'Accounts',
+    label: 'Quản lý tài khoản',
     icon: <Users size={20} />,
-    onClick: (id: string) => onNavigate('accounts'),
+    onClick: () => onNavigate('accounts'),
   },
   {
-    id: 'schedule',
-    label: 'Schedule',
+    id: 'schedules',
+    label: 'Quản lý lịch làm việc',
     icon: <CalendarDays size={20} />,
-    onClick: (id: string) => onNavigate('schedule'),
+    onClick: () => onNavigate('schedules'),
   },
   {
-    id: 'reports',
-    label: 'Reports',
-    icon: <BarChart size={20} />,
-    onClick: (id: string) => onNavigate('reports'),
+    id: 'profile',
+    label: 'Hồ sơ cá nhân',
+    icon: <UserCircle size={20} />,
+    onClick: () => onNavigate('profile'),
   },
   {
-    id: 'settings',
-    label: 'Settings',
+    id: 'logout',
+    label: 'Đăng xuất',
     icon: <Settings size={20} />,
-    onClick: (id: string) => onNavigate('settings'),
+    onClick: () => onLogout(),
   },
 ];
 

@@ -23,6 +23,9 @@ import { ConsultationChat } from './components/consultation-chat';
 import { DataProvider } from './components/data-context';
 import { ManagerProvider } from './components/manager-context';
 import { AITrainerProvider } from './components/ai-trainer-context';
+import { PatientProvider } from './components/patient-context';
+import { PatientLayoutWrapper } from './components/layout/PatientLayoutWrapper';
+import { PatientRoutes } from './components/patient/patient-routes';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
@@ -34,12 +37,12 @@ export default function App() {
 
   const handleLogin = (role: string) => {
     setCurrentUser(role);
-    setCurrentPage('dashboard');
+    setCurrentPage(role === 'patient' ? 'home' : 'dashboard');
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
-    setCurrentPage('dashboard');
+    setCurrentPage('home');
     setTrainingView('main');
     setSelectedRequestId(null);
     setConsultationView('list');
@@ -141,6 +144,23 @@ export default function App() {
             {currentPage === 'profile' && <ManagerProfile />}
           </ManagerLayoutWrapper>
         </ManagerProvider>
+      </>
+    );
+  }
+
+  if (currentUser === 'patient') {
+    return (
+      <>
+        <Toaster position="top-right" richColors />
+        <PatientProvider>
+          <PatientLayoutWrapper
+            currentPage={currentPage}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          >
+            <PatientRoutes currentPage={currentPage} onNavigate={handleNavigate} />
+          </PatientLayoutWrapper>
+        </PatientProvider>
       </>
     );
   }

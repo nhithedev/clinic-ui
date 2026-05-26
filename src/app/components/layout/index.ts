@@ -8,3 +8,4 @@ export { NotificationBadge } from './NotificationBadge';
 export { DoctorLayoutWrapper } from './DoctorLayoutWrapper';
 export { ManagerLayoutWrapper } from './ManagerLayoutWrapper';
 export { AITrainerLayoutWrapper } from './AITrainerLayoutWrapper';
+export { PatientLayoutWrapper } from './PatientLayoutWrapper';

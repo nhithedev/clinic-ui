@@ -1,3 +1,6 @@
+/**
+ * @deprecated Merged into src/styles/tokens.css. Do not import this file.
+ */
 @custom-variant dark (&:is(.dark *));
 
 :root {
