@@ -417,8 +417,10 @@ const saveCurrentConversation = () => {
 };
 
   return (
-    <div className="h-full min-h-0 flex flex-col" style={{ backgroundColor: COLORS.GRAY }}>
-      <div className="flex-1 overflow-y-auto px-6 py-8">
+    <div className="relative h-full min-h-0 flex flex-col" style={{ backgroundColor: COLORS.GRAY }}>
+      <div className={
+        `flex-1 overflow-y-auto px-6 py-8 ${mode === 'pre-chat' ? 'pb-96' : ''}`
+      }>
         <div className="max-w-4xl mx-auto space-y-5">
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -705,51 +707,99 @@ const saveCurrentConversation = () => {
       </div>
 
       {mode !== 'consult-form' && mode !== 'booking-form' && (
-  <div className="px-6 pb-6">
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-end gap-2">
-        <div
-          className="flex-1 flex gap-2 rounded-3xl p-2 border"
-          style={{ borderColor: COLORS.BORDER, backgroundColor: COLORS.WHITE }}
-        >
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSendFreeText()}
-            placeholder="Nhập tin nhắn..."
-            className="flex-1 px-4 py-3 rounded-3xl border-0 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]"
-            style={{ color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-          />
-          <button
-            type="button"
-            onClick={handleSendFreeText}
-            aria-label="Gửi tin nhắn"
-            className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0"
-            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-          >
-            <Send size={20} />
-          </button>
-        </div>
+        // Pre-chat: absolute input pinned to near-bottom. Other chat modes keep inline input.
+        mode === 'pre-chat' ? (
+          <div className="absolute left-0 right-0 bottom-0 px-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-end gap-2">
+                <div
+                  className="flex-1 flex gap-2 rounded-3xl p-2 border"
+                  style={{ borderColor: COLORS.BORDER, backgroundColor: COLORS.WHITE }}
+                >
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendFreeText()}
+                    placeholder="Nhập tin nhắn..."
+                    className="flex-1 px-4 py-3 rounded-3xl border-0 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]"
+                    style={{ color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendFreeText}
+                    aria-label="Gửi tin nhắn"
+                    className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0"
+                    style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+                  >
+                    <Send size={20} />
+                  </button>
+                </div>
 
-        <button
-          type="button"
-          onClick={saveCurrentConversation}
-          aria-label="Lưu lịch sử trò chuyện"
-          title="Lưu lịch sử trò chuyện"
-          className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2"
-          style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-        >
-          <Save size={20} />
-        </button>
-      </div>
+                <button
+                  type="button"
+                  onClick={saveCurrentConversation}
+                  aria-label="Lưu lịch sử trò chuyện"
+                  title="Lưu lịch sử trò chuyện"
+                  className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2"
+                  style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+                >
+                  <Save size={20} />
+                </button>
+              </div>
 
-      <p className="mt-2 px-2 text-xs leading-5" style={{ color: COLORS.TEXT_SECONDARY }}>
-        Lưu ý: Ngoài trường hợp Tư vấn - Khai triệu chứng, trò chuyện không tự lưu.
-        Nếu muốn giữ lại nội dung trò chuyện cũ, bạn cần bấm nút lưu lịch sử trò chuyện.
-      </p>
-    </div>
-  </div>
-)}
+              <p className="mt-2 px-2 text-xs leading-5" style={{ color: COLORS.TEXT_SECONDARY }}>
+                Lưu ý: Ngoài trường hợp Tư vấn - Khai triệu chứng, trò chuyện không tự lưu.
+                Nếu muốn giữ lại nội dung trò chuyện cũ, bạn cần bấm nút lưu lịch sử trò chuyện.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="px-6 pb-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-end gap-2">
+                <div
+                  className="flex-1 flex gap-2 rounded-3xl p-2 border"
+                  style={{ borderColor: COLORS.BORDER, backgroundColor: COLORS.WHITE }}
+                >
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendFreeText()}
+                    placeholder="Nhập tin nhắn..."
+                    className="flex-1 px-4 py-3 rounded-3xl border-0 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]"
+                    style={{ color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendFreeText}
+                    aria-label="Gửi tin nhắn"
+                    className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0"
+                    style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+                  >
+                    <Send size={20} />
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={saveCurrentConversation}
+                  aria-label="Lưu lịch sử trò chuyện"
+                  title="Lưu lịch sử trò chuyện"
+                  className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2"
+                  style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+                >
+                  <Save size={20} />
+                </button>
+              </div>
+
+              <p className="mt-2 px-2 text-xs leading-5" style={{ color: COLORS.TEXT_SECONDARY }}>
+                Lưu ý: Ngoài trường hợp Tư vấn - Khai triệu chứng, trò chuyện không tự lưu.
+                Nếu muốn giữ lại nội dung trò chuyện cũ, bạn cần bấm nút lưu lịch sử trò chuyện.
+              </p>
+            </div>
+          </div>
+        )
+      )}
     </div>
   );
 }

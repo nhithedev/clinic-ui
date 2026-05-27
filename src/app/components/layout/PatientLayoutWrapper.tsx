@@ -26,7 +26,7 @@ export function PatientLayoutWrapper({
 }: PatientLayoutWrapperProps) {
   const { profile, notifications } = usePatient();
   const unread = notifications.filter((n) => !n.read).length;
-  const isChatMain = currentPage === 'symptom-consultation';
+
 
   const sidebarItems = [
     {
@@ -93,7 +93,7 @@ export function PatientLayoutWrapper({
 
   const page = titleMap[currentPage] || titleMap['symptom-consultation'];
 
-    return (
+      return (
     <SharedLayout
       title={page.title}
       description={page.desc}
@@ -105,15 +105,10 @@ export function PatientLayoutWrapper({
       }}
       showSearch={false}
       showSettings={false}
-      showTopbar={!isChatMain}
-      showFooter={!isChatMain}
-      mainClassName={isChatMain ? 'p-0' : 'p-4'}
-      mainStyle={isChatMain ? { backgroundColor: COLORS.GRAY } : undefined}
-      contentClassName={
-        isChatMain
-          ? 'flex-1 min-w-0 flex flex-col min-h-0 h-full'
-          : 'flex-1 min-w-0 rounded-3xl p-3 flex flex-col min-h-fit'
-      }
+      showTopbar
+      showFooter
+      mainClassName="p-4"
+      contentClassName="flex-1 min-w-0 rounded-3xl p-3 flex flex-col min-h-0 h-full"
       contentStyle={{ backgroundColor: COLORS.GRAY }}
     >
       {children}
