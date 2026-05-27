@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Save, Send, X } from 'lucide-react';
+import { Plus, Save, Send, Stethoscope, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { COLORS } from '@/styles/colors';
 import {
@@ -46,7 +46,6 @@ const initialBotMessage: PatientChatMessage = {
     'Xin chào, tôi là trợ lý tư vấn sức khỏe của phòng khám. Bạn có thể mô tả triệu chứng như đang chat với bác sĩ, hoặc chọn nhanh nhu cầu bên dưới.',
 };
 
-
 const inputClassName =
   'w-full px-4 py-3 rounded-3xl border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]';
 
@@ -61,6 +60,7 @@ function suggestSpecialty(text: string) {
 
 function assessLevel(text: string): ConsultationLevel {
   const lower = text.toLowerCase();
+
   if (
     lower.includes('đau ngực') ||
     lower.includes('khó thở') ||
@@ -71,6 +71,7 @@ function assessLevel(text: string): ConsultationLevel {
   ) {
     return 'urgent';
   }
+
   if (
     lower.includes('nhẹ') ||
     lower.includes('mệt') ||
@@ -79,6 +80,7 @@ function assessLevel(text: string): ConsultationLevel {
   ) {
     return 'mild';
   }
+
   return 'moderate';
 }
 
@@ -118,18 +120,22 @@ function formatBookingForm(form: BookingForm) {
 }
 
 export function SymptomConsultation() {
-  const { profile, addAppointment, addConsultation } = usePatient();
+  const { profile, addAppointment, addConsultation, addDoctorConsultationRequest } = usePatient();
+
   const [messages, setMessages] = useState<PatientChatMessage[]>([initialBotMessage]);
   const [input, setInput] = useState('');
   const [mode, setMode] = useState<ChatMode>('pre-chat');
   const [lastLevel, setLastLevel] = useState<ConsultationLevel>('moderate');
   const [suggestedSpecialty, setSuggestedSpecialty] = useState('Nội khoa');
   const [noMoreBookingPrompt, setNoMoreBookingPrompt] = useState(false);
+  const [showDoctorConfirm, setShowDoctorConfirm] = useState(false);
+
   const [consultForm, setConsultForm] = useState<ConsultationForm>({
     symptoms: '',
     medicalHistory: '',
     extraInfo: '',
   });
+
   const [bookingForm, setBookingForm] = useState<BookingForm>({
     name: profile.name,
     phone: profile.phone,
@@ -150,6 +156,7 @@ export function SymptomConsultation() {
 
   const startConsultation = (seed?: string) => {
     const nextSymptoms = seed?.trim() || '';
+
     const nextMessages: PatientChatMessage[] = [
       { role: 'user', content: nextSymptoms || 'Tôi cần tư vấn' },
       {
@@ -158,6 +165,7 @@ export function SymptomConsultation() {
           'Tôi đã hiểu, bạn có thể chia sẻ thêm về triệu chứng chính, tiền sử bệnh và thông tin bổ sung để tôi nắm rõ hơn được không?',
       },
     ];
+
     setConsultForm((prev) => ({ ...prev, symptoms: nextSymptoms }));
     appendMessages(...nextMessages);
     setInput('');
@@ -171,6 +179,7 @@ export function SymptomConsultation() {
       specialty,
       slots: prev.slots.length > 0 ? prev.slots : [{ date: '', time: '' }],
     }));
+
     appendMessages(
       { role: 'user', content: userBubble },
       {
@@ -178,11 +187,13 @@ export function SymptomConsultation() {
         content: `Tôi đã hiểu. Với tình trạng của bạn, tôi thấy nên đến gặp bác sĩ về ${specialty}. Bạn có thể cung cấp thêm thông tin vào form dưới đây để được hỗ trợ đặt lịch.`,
       },
     );
+
     setMode('booking-form');
   };
 
   const handleSendFreeText = () => {
     if (!input.trim()) return;
+
     const text = input.trim();
 
     if (mode === 'pre-chat') {
@@ -202,6 +213,7 @@ export function SymptomConsultation() {
     setInput('');
     setLastLevel(level);
     setSuggestedSpecialty(specialty);
+
     appendMessages(
       { role: 'user', content: text },
       { role: 'bot', content: botMessage },
@@ -225,6 +237,7 @@ export function SymptomConsultation() {
       consultForm.medicalHistory,
       consultForm.extraInfo,
     ].join(' ');
+
     const level = assessLevel(combined);
     const specialty = suggestSpecialty(combined);
     const advice = buildAdvice(level, consultForm.symptoms, specialty);
@@ -235,6 +248,7 @@ export function SymptomConsultation() {
     ];
 
     const savedMessages = [...messages, ...nextMessages];
+
     addConsultation({
       date: new Date().toISOString(),
       summary: consultForm.symptoms.slice(0, 120),
@@ -273,16 +287,19 @@ export function SymptomConsultation() {
 
   const submitBookingForm = () => {
     const validSlot = bookingForm.slots.find((slot) => slot.date && slot.time);
+
     if (!bookingForm.name.trim() || !bookingForm.phone.trim() || !bookingForm.email.trim()) {
       toast.error('Vui lòng nhập đầy đủ thông tin cá nhân/liên hệ');
       return;
     }
+
     if (!validSlot) {
       toast.error('Vui lòng chọn ít nhất một ngày và giờ khám');
       return;
     }
 
     const hasDoctor = bookingForm.slots.some((slot) => slot.time !== '16:00');
+
     const userMessage: PatientChatMessage = {
       role: 'user',
       content: formatBookingForm(bookingForm),
@@ -302,6 +319,7 @@ export function SymptomConsultation() {
       role: 'bot',
       content: `Với lịch trình của bạn, hệ thống đã sắp xếp được bác sĩ ${selectedDoctor.name}. Bạn có muốn đặt lịch khám không?`,
     });
+
     setMode('booking-confirm');
   };
 
@@ -329,6 +347,7 @@ export function SymptomConsultation() {
         content: `Hệ thống đã đặt lịch khám cho bạn. Mã hẹn ${code}. Vui lòng có mặt trước 15 phút, mang theo giấy tờ tùy thân và kết quả xét nghiệm nếu có. Lịch khám đã gửi đến bác sĩ, khi có phản hồi hệ thống sẽ gửi mail cho bạn. Bạn cần tư vấn thêm gì không?`,
       },
     );
+
     setBookingForm({
       name: profile.name,
       phone: profile.phone,
@@ -337,6 +356,7 @@ export function SymptomConsultation() {
       slots: [{ date: '', time: '' }],
       notes: '',
     });
+
     setNoMoreBookingPrompt(false);
     setMode('free-chat');
   };
@@ -349,6 +369,7 @@ export function SymptomConsultation() {
         content: 'Tôi đã hủy form đặt lịch. Bạn có thể tiếp tục nhập nội dung cần tư vấn bất cứ lúc nào.',
       },
     );
+
     setMode('free-chat');
   };
 
@@ -378,6 +399,7 @@ export function SymptomConsultation() {
           },
         );
       }
+
       setMode('free-chat');
       return;
     }
@@ -389,38 +411,134 @@ export function SymptomConsultation() {
         content: 'Không sao. Nếu bạn cần hỏi thêm, hãy nhập nội dung mới bên dưới.',
       },
     );
+
     setNoMoreBookingPrompt(true);
     setMode('free-chat');
   };
-const saveCurrentConversation = () => {
-  const userMessages = messages.filter((message) => message.role === 'user');
 
-  if (userMessages.length === 0) {
-    toast.error('Chưa có nội dung trò chuyện để lưu');
-    return;
-  }
+  const saveCurrentConversation = () => {
+    const userMessages = messages.filter((message) => message.role === 'user');
 
-  const combinedText = messages.map((message) => message.content).join(' ');
-  const level = assessLevel(combinedText);
-  const summary =
-    userMessages[userMessages.length - 1]?.content.slice(0, 120) ||
-    'Cuộc trò chuyện tư vấn sức khỏe';
+    if (userMessages.length === 0) {
+      toast.error('Chưa có nội dung trò chuyện để lưu');
+      return;
+    }
 
-  addConsultation({
-    date: new Date().toISOString(),
-    summary,
-    level,
-    messages,
-  });
+    const combinedText = messages.map((message) => message.content).join(' ');
+    const level = assessLevel(combinedText);
+    const summary =
+      userMessages[userMessages.length - 1]?.content.slice(0, 120) ||
+      'Cuộc trò chuyện tư vấn sức khỏe';
 
-  toast.success('Đã lưu lịch sử trò chuyện');
-};
+    addConsultation({
+      date: new Date().toISOString(),
+      summary,
+      level,
+      messages,
+    });
+
+    toast.success('Đã lưu lịch sử trò chuyện');
+  };
+
+  const openDoctorConfirm = () => {
+    const userMessages = messages.filter((message) => message.role === 'user');
+
+    if (userMessages.length === 0) {
+      toast.error('Chưa có nội dung trò chuyện để gửi cho bác sĩ');
+      return;
+    }
+
+    setShowDoctorConfirm(true);
+  };
+
+  const confirmSendToDoctor = () => {
+    const combinedText = messages.map((message) => message.content).join(' ');
+    const level = assessLevel(combinedText);
+    const userMessages = messages.filter((message) => message.role === 'user');
+    const botMessages = messages.filter((message) => message.role === 'bot');
+    const lastUserMessage = userMessages[userMessages.length - 1];
+    const lastBotMessage = botMessages[botMessages.length - 1];
+
+    addDoctorConsultationRequest({
+      messages,
+      summary: lastUserMessage?.content.slice(0, 140) || 'Cuộc trò chuyện cần bác sĩ tư vấn',
+      aiSummary:
+        lastBotMessage?.content ||
+        'Bệnh nhân đã gửi cuộc trò chuyện cho bác sĩ để được xử lý riêng.',
+      level,
+    });
+
+    appendMessages({
+      role: 'bot',
+      content:
+        'Tôi đã gửi cuộc trò chuyện này cho bác sĩ. Bác sĩ sẽ xem xét và phản hồi trong mục Tư vấn bác sĩ sớm nhất.',
+    });
+
+    setShowDoctorConfirm(false);
+    toast.success('Đã gửi cho bác sĩ và sẽ được xử lý sớm nhất');
+  };
+
+  const renderChatInput = (isPinned = false) => (
+    <div className={isPinned ? 'absolute left-0 right-0 bottom-0 px-6' : 'px-6 pb-6'}>
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-end gap-2">
+          <div
+            className="flex-1 flex gap-2 rounded-3xl p-2 border"
+            style={{ borderColor: COLORS.BORDER, backgroundColor: COLORS.WHITE }}
+          >
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendFreeText()}
+              placeholder="Nhập tin nhắn..."
+              className="flex-1 px-4 py-3 rounded-3xl border-0 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]"
+              style={{ color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
+            />
+            <button
+              type="button"
+              onClick={handleSendFreeText}
+              aria-label="Gửi tin nhắn"
+              className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0"
+              style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+            >
+              <Send size={20} />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={saveCurrentConversation}
+            aria-label="Lưu lịch sử trò chuyện"
+            title="Lưu lịch sử trò chuyện"
+            className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2"
+            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+          >
+            <Save size={20} />
+          </button>
+
+          <button
+            type="button"
+            onClick={openDoctorConfirm}
+            aria-label="Gửi bác sĩ tư vấn"
+            title="Gửi bác sĩ tư vấn"
+            className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2"
+            style={{ backgroundColor: COLORS.DARK }}
+          >
+            <Stethoscope size={20} />
+          </button>
+        </div>
+
+        <p className="mt-2 px-2 text-xs leading-5" style={{ color: COLORS.TEXT_SECONDARY }}>
+          Lưu ý: Ngoài trường hợp Tư vấn - Khai triệu chứng, trò chuyện không tự lưu.
+          Nếu muốn giữ lại nội dung trò chuyện cũ, bạn cần bấm nút lưu lịch sử trò chuyện.
+        </p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="relative h-full min-h-0 flex flex-col" style={{ backgroundColor: COLORS.GRAY }}>
-      <div className={
-        `flex-1 overflow-y-auto px-6 py-8 ${mode === 'pre-chat' ? 'pb-96' : ''}`
-      }>
+      <div className={`flex-1 overflow-y-auto px-6 py-8 ${mode === 'pre-chat' ? 'pb-96' : ''}`}>
         <div className="max-w-4xl mx-auto space-y-5">
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -450,7 +568,11 @@ const saveCurrentConversation = () => {
                 type="button"
                 onClick={() => startConsultation()}
                 className="px-5 py-3 rounded-3xl border text-sm"
-                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
+                style={{
+                  borderColor: COLORS.BORDER,
+                  color: COLORS.TEXT_PRIMARY,
+                  backgroundColor: COLORS.WHITE,
+                }}
               >
                 Tôi cần tư vấn
               </button>
@@ -515,6 +637,19 @@ const saveCurrentConversation = () => {
               </button>
               <button
                 type="button"
+                onClick={openDoctorConfirm}
+                className="px-5 py-3 rounded-3xl border text-sm flex items-center gap-2"
+                style={{
+                  borderColor: COLORS.BORDER,
+                  color: COLORS.TEXT_PRIMARY,
+                  backgroundColor: COLORS.WHITE,
+                }}
+              >
+                <Stethoscope size={16} />
+                Gửi bác sĩ tư vấn
+              </button>
+              <button
+                type="button"
                 onClick={() => handleChoice('no')}
                 className="px-5 py-3 rounded-3xl border text-sm"
                 style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
@@ -549,6 +684,7 @@ const saveCurrentConversation = () => {
                   placeholder="Email"
                 />
               </div>
+
               <select
                 value={bookingForm.specialty}
                 onChange={(e) => setBookingForm((prev) => ({ ...prev, specialty: e.target.value }))}
@@ -706,99 +842,54 @@ const saveCurrentConversation = () => {
         </div>
       </div>
 
-      {mode !== 'consult-form' && mode !== 'booking-form' && (
-        // Pre-chat: absolute input pinned to near-bottom. Other chat modes keep inline input.
-        mode === 'pre-chat' ? (
-          <div className="absolute left-0 right-0 bottom-0 px-6">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-end gap-2">
-                <div
-                  className="flex-1 flex gap-2 rounded-3xl p-2 border"
-                  style={{ borderColor: COLORS.BORDER, backgroundColor: COLORS.WHITE }}
-                >
-                  <input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendFreeText()}
-                    placeholder="Nhập tin nhắn..."
-                    className="flex-1 px-4 py-3 rounded-3xl border-0 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]"
-                    style={{ color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendFreeText}
-                    aria-label="Gửi tin nhắn"
-                    className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0"
-                    style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-                  >
-                    <Send size={20} />
-                  </button>
-                </div>
+      {mode !== 'consult-form' && mode !== 'booking-form' && renderChatInput(mode === 'pre-chat')}
 
-                <button
-                  type="button"
-                  onClick={saveCurrentConversation}
-                  aria-label="Lưu lịch sử trò chuyện"
-                  title="Lưu lịch sử trò chuyện"
-                  className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2"
-                  style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-                >
-                  <Save size={20} />
-                </button>
-              </div>
+      {showDoctorConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div
+            className="relative w-full max-w-md rounded-3xl p-6 shadow-xl space-y-4"
+            style={{ backgroundColor: COLORS.WHITE }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowDoctorConfirm(false)}
+              className="absolute right-4 top-4 w-9 h-9 rounded-3xl flex items-center justify-center"
+              style={{ backgroundColor: COLORS.GRAY, color: COLORS.TEXT_SECONDARY }}
+              aria-label="Đóng"
+            >
+              <X size={18} />
+            </button>
 
-              <p className="mt-2 px-2 text-xs leading-5" style={{ color: COLORS.TEXT_SECONDARY }}>
-                Lưu ý: Ngoài trường hợp Tư vấn - Khai triệu chứng, trò chuyện không tự lưu.
-                Nếu muốn giữ lại nội dung trò chuyện cũ, bạn cần bấm nút lưu lịch sử trò chuyện.
+            <div className="pr-10">
+              <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
+                Gửi cuộc trò chuyện cho bác sĩ?
+              </h3>
+              <p className="text-sm mt-2 leading-6" style={{ color: COLORS.TEXT_SECONDARY }}>
+                Cuộc trò chuyện hiện tại sẽ được gửi sang mục Tư vấn bác sĩ để bác sĩ xử lý riêng.
+                Sau khi gửi, bạn có thể theo dõi phản hồi trong sidebar.
               </p>
             </div>
-          </div>
-        ) : (
-          <div className="px-6 pb-6">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-end gap-2">
-                <div
-                  className="flex-1 flex gap-2 rounded-3xl p-2 border"
-                  style={{ borderColor: COLORS.BORDER, backgroundColor: COLORS.WHITE }}
-                >
-                  <input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendFreeText()}
-                    placeholder="Nhập tin nhắn..."
-                    className="flex-1 px-4 py-3 rounded-3xl border-0 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]"
-                    style={{ color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSendFreeText}
-                    aria-label="Gửi tin nhắn"
-                    className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0"
-                    style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-                  >
-                    <Send size={20} />
-                  </button>
-                </div>
 
-                <button
-                  type="button"
-                  onClick={saveCurrentConversation}
-                  aria-label="Lưu lịch sử trò chuyện"
-                  title="Lưu lịch sử trò chuyện"
-                  className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2"
-                  style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-                >
-                  <Save size={20} />
-                </button>
-              </div>
-
-              <p className="mt-2 px-2 text-xs leading-5" style={{ color: COLORS.TEXT_SECONDARY }}>
-                Lưu ý: Ngoài trường hợp Tư vấn - Khai triệu chứng, trò chuyện không tự lưu.
-                Nếu muốn giữ lại nội dung trò chuyện cũ, bạn cần bấm nút lưu lịch sử trò chuyện.
-              </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDoctorConfirm(false)}
+                className="px-5 py-2.5 rounded-3xl border text-sm"
+                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY }}
+              >
+                Không
+              </button>
+              <button
+                type="button"
+                onClick={confirmSendToDoctor}
+                className="px-5 py-2.5 rounded-3xl text-white text-sm"
+                style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+              >
+                Xác nhận gửi
+              </button>
             </div>
           </div>
-        )
+        </div>
       )}
     </div>
   );

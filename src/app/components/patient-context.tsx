@@ -41,6 +41,33 @@ export interface PatientNotification {
   read: boolean;
 }
 
+export type DoctorConsultationStatus = 'pending' | 'resolved';
+
+export interface PatientDoctorConsultationMessage {
+  id: number;
+  sender: 'patient' | 'doctor' | 'ai';
+  content: string;
+  timestamp: string;
+}
+
+export interface PatientDoctorConsultation {
+  id: number;
+  status: DoctorConsultationStatus;
+  createdAt: string;
+  updatedAt: string;
+  summary: string;
+  aiSummary: string;
+  level: ConsultationLevel;
+  doctor: {
+    name: string;
+    specialty: string;
+    clinicName: string;
+    email: string;
+    phone: string;
+  };
+  messages: PatientDoctorConsultationMessage[];
+}
+
 interface PatientProfile {
   name: string;
   phone: string;
@@ -58,6 +85,7 @@ interface PatientContextValue {
   appointments: PatientAppointment[];
   consultations: PatientConsultation[];
   notifications: PatientNotification[];
+  doctorConsultations: PatientDoctorConsultation[];
   addAppointment: (apt: AppointmentPayload) => { id: number; code: string };
   rescheduleAppointment: (id: number, date: string, time: string) => void;
   cancelAppointment: (id: number, reason?: string) => void;
@@ -65,6 +93,13 @@ interface PatientContextValue {
   rateConsultation: (id: number, rating: number) => void;
   markNotificationRead: (id: number) => void;
   updateProfile: (partial: Partial<PatientProfile>) => void;
+  addDoctorConsultationRequest: (payload: {
+    messages: PatientChatMessage[];
+    summary: string;
+    aiSummary: string;
+    level: ConsultationLevel;
+  }) => number;
+  addDoctorConsultationMessage: (id: number, content: string) => void;
   bookingPrefill: { specialty?: string } | null;
   setBookingPrefill: (v: { specialty?: string } | null) => void;
 }
@@ -114,6 +149,48 @@ const initialConsultations: PatientConsultation[] = [
   },
 ];
 
+const initialDoctorConsultations: PatientDoctorConsultation[] = [
+  {
+    id: 1,
+    status: 'pending',
+    createdAt: '2026-05-27T09:00:00',
+    updatedAt: '2026-05-27T09:12:00',
+    summary: 'Đau ngực nhẹ và khó thở khi vận động',
+    aiSummary:
+      'Bệnh nhân mô tả đau ngực nhẹ kèm khó thở khi vận động. AI đã khuyến nghị nên gặp bác sĩ Tim mạch để được kiểm tra rõ hơn.',
+    level: 'urgent',
+    doctor: {
+      name: 'BS. Nguyễn Văn A',
+      specialty: 'Tim mạch',
+      clinicName: 'Phòng khám trung tâm',
+      email: 'doctor@example.com',
+      phone: '0909000001',
+    },
+    messages: [
+      {
+        id: 1,
+        sender: 'patient',
+        content: 'Tôi bị đau ngực nhẹ và hơi khó thở khi đi bộ nhanh.',
+        timestamp: '2026-05-27T09:00:00',
+      },
+      {
+        id: 2,
+        sender: 'ai',
+        content:
+          'Tình trạng này có thể nguy hiểm. Bạn nên đi khám sớm với bác sĩ Tim mạch.',
+        timestamp: '2026-05-27T09:01:00',
+      },
+      {
+        id: 3,
+        sender: 'doctor',
+        content:
+          'Tôi đã nhận được thông tin. Bạn nên hạn chế vận động mạnh và đặt lịch khám trong thời gian gần nhất.',
+        timestamp: '2026-05-27T09:12:00',
+      },
+    ],
+  },
+];
+
 export function PatientProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<PatientProfile>({
     name: 'Trần Thị Bệnh Nhân',
@@ -122,8 +199,10 @@ export function PatientProvider({ children }: { children: ReactNode }) {
     allergies: ['Penicillin'],
     medicalHistory: ['Tăng huyết áp'],
   });
+
   const [appointments, setAppointments] = useState(initialAppointments);
   const [consultations, setConsultations] = useState(initialConsultations);
+  const [doctorConsultations, setDoctorConsultations] = useState(initialDoctorConsultations);
   const [notifications, setNotifications] = useState<PatientNotification[]>([
     {
       id: 1,
@@ -138,6 +217,7 @@ export function PatientProvider({ children }: { children: ReactNode }) {
   const addAppointment = (apt: AppointmentPayload) => {
     const id = Date.now();
     const code = apt.code || `APT-${id}`;
+
     setAppointments((prev) => [
       ...prev,
       {
@@ -147,6 +227,7 @@ export function PatientProvider({ children }: { children: ReactNode }) {
         status: 'upcoming',
       },
     ]);
+
     setNotifications((prev) => [
       {
         id: Date.now() + 1,
@@ -157,6 +238,7 @@ export function PatientProvider({ children }: { children: ReactNode }) {
       },
       ...prev,
     ]);
+
     return { id, code };
   };
 
@@ -164,6 +246,7 @@ export function PatientProvider({ children }: { children: ReactNode }) {
     setAppointments((prev) =>
       prev.map((a) => (a.id === id ? { ...a, date, time, pendingDoctorReply: true } : a)),
     );
+
     setNotifications((prev) => [
       {
         id: Date.now(),
@@ -180,6 +263,7 @@ export function PatientProvider({ children }: { children: ReactNode }) {
     setAppointments((prev) =>
       prev.map((a) => (a.id === id ? { ...a, status: 'cancelled' as const } : a)),
     );
+
     setNotifications((prev) => [
       {
         id: Date.now(),
@@ -210,6 +294,84 @@ export function PatientProvider({ children }: { children: ReactNode }) {
     setProfile((p) => ({ ...p, ...partial }));
   };
 
+  const addDoctorConsultationRequest = (payload: {
+    messages: PatientChatMessage[];
+    summary: string;
+    aiSummary: string;
+    level: ConsultationLevel;
+  }) => {
+    const now = new Date().toISOString();
+    const id = Date.now();
+
+    const mappedMessages: PatientDoctorConsultationMessage[] = payload.messages.map(
+      (message, index) => ({
+        id: id + index,
+        sender: message.role === 'user' ? 'patient' : 'ai',
+        content: message.content,
+        timestamp: now,
+      }),
+    );
+
+    setDoctorConsultations((prev) => [
+      {
+        id,
+        status: 'pending',
+        createdAt: now,
+        updatedAt: now,
+        summary: payload.summary,
+        aiSummary: payload.aiSummary,
+        level: payload.level,
+        doctor: {
+          name: 'BS. Nguyễn Văn A',
+          specialty: payload.level === 'urgent' ? 'Tim mạch' : 'Nội khoa',
+          clinicName: 'Phòng khám trung tâm',
+          email: 'doctor@example.com',
+          phone: '0909000001',
+        },
+        messages: mappedMessages,
+      },
+      ...prev,
+    ]);
+
+    setNotifications((prev) => [
+      {
+        id: Date.now() + 1,
+        title: 'Đã gửi tư vấn cho bác sĩ',
+        body: 'Cuộc trò chuyện đã được gửi cho bác sĩ và sẽ được xử lý sớm nhất.',
+        time: now,
+        read: false,
+      },
+      ...prev,
+    ]);
+
+    return id;
+  };
+
+  const addDoctorConsultationMessage = (id: number, content: string) => {
+    const now = new Date().toISOString();
+
+    setDoctorConsultations((prev) =>
+      prev.map((consultation) =>
+        consultation.id === id
+          ? {
+              ...consultation,
+              status: 'pending',
+              updatedAt: now,
+              messages: [
+                ...consultation.messages,
+                {
+                  id: Date.now(),
+                  sender: 'patient',
+                  content,
+                  timestamp: now,
+                },
+              ],
+            }
+          : consultation,
+      ),
+    );
+  };
+
   return (
     <PatientContext.Provider
       value={{
@@ -217,6 +379,7 @@ export function PatientProvider({ children }: { children: ReactNode }) {
         appointments,
         consultations,
         notifications,
+        doctorConsultations,
         addAppointment,
         rescheduleAppointment,
         cancelAppointment,
@@ -224,6 +387,8 @@ export function PatientProvider({ children }: { children: ReactNode }) {
         rateConsultation,
         markNotificationRead,
         updateProfile,
+        addDoctorConsultationRequest,
+        addDoctorConsultationMessage,
         bookingPrefill,
         setBookingPrefill,
       }}

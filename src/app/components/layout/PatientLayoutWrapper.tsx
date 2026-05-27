@@ -6,6 +6,7 @@ import {
   UserCircle,
   LogOut,
   MessageCircle,
+  Stethoscope,
 } from 'lucide-react';
 import { SharedLayout } from './SharedLayout';
 import { usePatient } from '../patient-context';
@@ -24,9 +25,12 @@ export function PatientLayoutWrapper({
   onNavigate,
   onLogout,
 }: PatientLayoutWrapperProps) {
-  const { profile, notifications } = usePatient();
-  const unread = notifications.filter((n) => !n.read).length;
+  const { profile, notifications, doctorConsultations } = usePatient();
 
+  const unread = notifications.filter((n) => !n.read).length;
+  const pendingDoctorConsultations = doctorConsultations.filter(
+    (consultation) => consultation.status === 'pending',
+  ).length;
 
   const sidebarItems = [
     {
@@ -46,6 +50,13 @@ export function PatientLayoutWrapper({
       label: 'Lịch sử tư vấn',
       icon: <History size={20} />,
       onClick: () => onNavigate('consultation-history'),
+    },
+    {
+      id: 'doctor-consultations',
+      label: 'Tư vấn bác sĩ',
+      icon: <Stethoscope size={20} />,
+      badge: pendingDoctorConsultations,
+      onClick: () => onNavigate('doctor-consultations'),
     },
     {
       id: 'notifications',
@@ -81,6 +92,10 @@ export function PatientLayoutWrapper({
       title: 'Lịch sử tư vấn',
       desc: 'Xem lại các cuộc tư vấn đã thực hiện',
     },
+    'doctor-consultations': {
+      title: 'Tư vấn bác sĩ',
+      desc: 'Theo dõi các cuộc tư vấn đã gửi cho bác sĩ',
+    },
     notifications: {
       title: 'Thông báo',
       desc: 'Nhắc lịch và cập nhật từ phòng khám',
@@ -93,7 +108,7 @@ export function PatientLayoutWrapper({
 
   const page = titleMap[currentPage] || titleMap['symptom-consultation'];
 
-      return (
+  return (
     <SharedLayout
       title={page.title}
       description={page.desc}
