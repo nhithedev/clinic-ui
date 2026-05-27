@@ -9,6 +9,8 @@ interface TopbarProps {
   userRole: string;
   onSearch?: (query: string) => void;
   onSettingsClick?: () => void;
+  showSearch?: boolean;
+  showSettings?: boolean;
 }
 
 export const Topbar = ({
@@ -19,6 +21,8 @@ export const Topbar = ({
   userRole,
   onSearch,
   onSettingsClick,
+  showSearch = true,
+  showSettings = true,
 }: TopbarProps) => {
   return (
     <div 
@@ -42,20 +46,22 @@ export const Topbar = ({
       {/* Right: Search, Avatar, Settings */}
 <div className="flex items-center gap-6">
 
-  {/* Search Bar */}
-  <div
-    className="flex items-center gap-2 px-4 py-2 rounded-3xl"
-    style={{ backgroundColor: COLORS.GRAY }}
-  >
-    <input
-      type="text"
-      placeholder="Search anything..."
-      className="bg-transparent outline-none text-sm w-56"
-      style={{ color: COLORS.TEXT_PRIMARY }}
-      onChange={(e) => onSearch?.(e.target.value)}
-    />
-    <Search size={18} style={{ color: COLORS.TEXT_SECONDARY }} />
-  </div>
+  {showSearch && (
+    <div
+      className="flex items-center gap-2 px-4 py-2 rounded-3xl"
+      style={{ backgroundColor: COLORS.GRAY }}
+    >
+      <input
+        type="search"
+        placeholder="Tìm kiếm..."
+        aria-label="Tìm kiếm"
+        className="bg-transparent outline-none text-sm w-56"
+        style={{ color: COLORS.TEXT_PRIMARY }}
+        onChange={(e) => onSearch?.(e.target.value)}
+      />
+      <Search size={18} style={{ color: COLORS.TEXT_SECONDARY }} aria-hidden />
+    </div>
+  )}
 
   {/* Avatar + Name — với mr để đẩy settings ra ngoài cùng */}
   <div className="flex items-center gap-3" style={{ marginRight: '4rem' }}>
@@ -75,16 +81,19 @@ export const Topbar = ({
     </div>
   </div>
 
-  {/* Settings — ngoài cùng bên phải */}
-  <button
-    onClick={onSettingsClick}
-    className="p-2 rounded-full transition-colors"
-    style={{ backgroundColor: COLORS.LIGHTER }}
-    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.HOVER; }}
-    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = COLORS.LIGHTER; }}
-  >
-    <Settings size={20} style={{ color: COLORS.TEXT_SECONDARY }} />
-  </button>
+  {showSettings && (
+    <button
+      type="button"
+      onClick={onSettingsClick}
+      aria-label="Cài đặt"
+      className="p-2 rounded-full transition-colors"
+      style={{ backgroundColor: COLORS.LIGHTER }}
+      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = COLORS.HOVER; }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = COLORS.LIGHTER; }}
+    >
+      <Settings size={20} style={{ color: COLORS.TEXT_SECONDARY }} />
+    </button>
+  )}
 
 </div>
       </div>

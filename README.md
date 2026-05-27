@@ -1,60 +1,72 @@
 # Clinic UI - Setup Guide
 
-## Project Overview
-This is a React + TypeScript + Tailwind CSS clinic management system UI featuring multiple user roles (Doctor, Manager, AI Trainer).
+## Project Overview / Tổng quan
+
+React + TypeScript + Tailwind clinic management UI for **Doctor**, **Manager**, **AI Trainer**, and **Patient** roles.
 
 ## Quick Start
 
-### Installation (Already Done)
 ```bash
 npm install
-```
-
-### Development Server
-```bash
-npm run dev
-```
-The app will open at `http://localhost:5173`
-
-### Build for Production
-```bash
+npm run dev      # http://localhost:5173
 npm run build
+npm run preview  # preview production build
 ```
 
-### Preview Production Build
-```bash
-npm preview
-```
+## Demo accounts / Tài khoản demo
+
+| Role | Username | Password |
+|------|----------|----------|
+| Bác sĩ | `doctor1` | `doctor123` |
+| Quản lý | `manager1` | `manager123` |
+| AI Trainer | `aitrainer1` | `trainer123` |
+| Bệnh nhân | `patient1` | `patient123` |
+
+Patient registration: use **Đăng ký** on login (mock OTP: `123456`).
 
 ## Project Structure
-- `src/app/App.tsx` - Main application component
-- `src/app/components/` - Feature components (doctor, manager, AI trainer layouts & pages)
-- `src/app/components/ui/` - Reusable UI components (Shadcn UI)
-- `src/styles/` - Global styles and Tailwind CSS configuration
-- `src/imports/` - Static assets and data
 
-## User Roles
-1. **Doctor** - Manage appointments, medical records, consultations
-2. **Manager** - Manage schedule, staff accounts, and resources
-3. **AI Trainer** - Manage training data and configuration
+- `src/app/App.tsx` — routing by role
+- `src/app/components/` — feature screens
+- `src/app/components/layout/` — SharedLayout, wrappers, KPI
+- `src/app/components/patient/` — patient role screens
+- `src/styles/tokens.css` — **color SSOT**
+- `docs/design/` — design direction & patient flows
+
+## User Roles / Vai trò
+
+1. **Doctor** — appointments, records, consultations  
+2. **Manager** — accounts, schedules, dashboard  
+3. **AI Trainer** — training, prompt config  
+4. **Patient** — book appointment, symptom chat, profile (register + OTP)
 
 ## Tech Stack
-- React 18
-- TypeScript
-- Vite (fast build tool)
-- Tailwind CSS (styling)
-- Shadcn UI (component library)
-- React Hook Form (form management)
-- Sonner (toast notifications)
 
-## Development Notes
-- The app uses context providers for state management
-- No backend is required for UI testing - components use mock data
-- API calls can be added to interact with a backend at the proxy URL (http://localhost:5000)
-- Modify `.env` for custom API endpoints
+- React 18, TypeScript, Vite  
+- Tailwind CSS, tailwindcss-animate  
+- Shadcn UI (Radix primitives)  
+- recharts, react-day-picker, cmdk, vaul, embla-carousel, next-themes  
+- React Hook Form, Sonner  
 
 ## Available Screens
-- Login
-- Doctor Dashboard, Appointments, Medical Records, Profile, Consultations
-- Manager Dashboard, Account Management, Schedule Management, Profile
-- AI Trainer Dashboard, Training Management, Prompt Configuration, Profile
+
+See [SCREEN_MAP.md](SCREEN_MAP.md).
+
+**Patient (new):** Home, Book appointment wizard, My appointments, Symptom consultation, Consultation history, Notifications, Profile.
+
+**Staff:** Login, dashboards, role-specific pages (see SCREEN_MAP).
+
+## Development Notes
+
+- Context providers hold mock data (no backend required for UI testing).
+- API proxy target documented for future backend: `http://localhost:5000`.
+- No `.env` file shipped; add locally if needed for API URL overrides.
+
+## Documentation
+
+| Doc | Purpose |
+|-----|---------|
+| [DESIGN_TOKENS.md](DESIGN_TOKENS.md) | Colors & usage (VI + EN) |
+| [LAYOUT_SETUP_GUIDE.md](LAYOUT_SETUP_GUIDE.md) | Layout components |
+| [docs/design/PATIENT_SCREEN_MAP.md](docs/design/PATIENT_SCREEN_MAP.md) | Patient pages |
+| [docs/design/PATIENT_USERFLOWS.md](docs/design/PATIENT_USERFLOWS.md) | Patient flows |

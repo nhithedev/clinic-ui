@@ -22,6 +22,8 @@ type SharedLayoutProps = {
   onSidebarItemClick?: (id: string) => void;
   onSearchChange?: (query: string) => void;
   onSettingsClick?: () => void;
+  showSearch?: boolean;
+  showSettings?: boolean;
 };
 
 export const SharedLayout = ({
@@ -35,6 +37,8 @@ export const SharedLayout = ({
   userInfo,
   onSearchChange,
   onSettingsClick,
+  showSearch = true,
+  showSettings = true,
 }: SharedLayoutProps) => {
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: COLORS.WHITE}}>
@@ -49,6 +53,8 @@ export const SharedLayout = ({
           userAvatar={userInfo.avatar}
           onSearch={onSearchChange}
           onSettingsClick={onSettingsClick}
+          showSearch={showSearch}
+          showSettings={showSettings}
         />
 
         <div className="flex-1 flex flex-col overflow-hidden mt-16"> {/* mt-16 thay vì mt-20, chỉnh độ cao của topbar */}

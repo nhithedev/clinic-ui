@@ -1,7 +1,7 @@
 # Unified Layout System & Color Scheme Setup
 
 ## Overview
-All components have been redesigned with a unified layout and color system for a cohesive look across all three roles (Doctor, Manager, AI Trainer).
+Unified layout and color system for **Doctor**, **Manager**, **AI Trainer**, and **Patient**. Colors: `src/styles/tokens.css` (SSOT) + `colors.ts`.
 
 ## New Color Palette
 
@@ -71,26 +71,11 @@ For manager dashboard KPIs:
 />
 ```
 Features:
-- Dark background with white text
-- Icon in top-right corner
-- Cyan divider bar
-- Percentage change with trending arrow
+- **White** top section with dark text; icon in **dark** box (top-right of label row)
+- **LIGHTER** bottom strip with change % and trending arrow (no cyan divider bar)
 
-### 5. **DemographicsChart** - Column chart for patient demographics
-```tsx
-<DemographicsChart
-  data={demographicsData}
-  totalPatients={1000}
-  period="This Week"
-  onPeriodChange={handlePeriodChange}
-/>
-```
-Features:
-- Grouped bars (children, adults, elderly)
-- Days of week on X-axis
-- Color-coded by age group
-- Hover bubbles with details
-- Period selector dropdown
+### 5. **DemographicsChart** (reserved)
+Component exists at `layout/DemographicsChart.tsx` but is **not mounted** on manager dashboard. Keep for future analytics.
 
 ### 6. **RightSidebarCalendar** - Calendar with activity tracking
 ```tsx
@@ -123,7 +108,7 @@ Features:
 ├──────────┬──────────────────────┬───────────┤
 │          │                      │           │
 │ SIDEBAR  │   MAIN CONTENT       │ RIGHT     │
-│ (White)  │   (White Card)       │ SIDEBAR   │
+│ (White)  │   (GRAY #F5F5F7)    │ SIDEBAR   │
 │          │                      │ (White)   │
 │          │                      │           │
 ├─────────────────────────────────────────────┤
@@ -175,23 +160,22 @@ const DoctorDashboard = () => {
 }
 ```
 
-## Manager Dashboard Features (New)
+## Role layout wrappers
 
-### Updated Components:
-1. **KPI Cards** - Three cards showing:
-   - Daily visits (vs yesterday)
-   - Total patients (vs last week)
-   - Total appointments (vs today)
+| Wrapper | Role |
+|---------|------|
+| `DoctorLayoutWrapper` | Doctor + right sidebar (pending consultations) |
+| `ManagerLayoutWrapper` | Manager + calendar right sidebar on dashboard |
+| `AITrainerLayoutWrapper` | AI Trainer |
+| `PatientLayoutWrapper` | Patient / customer unified nav |
 
-2. **Notification Badge** - Yellow alert badge for account updates
+Each wrapper passes `sidebarItems`, `activeItem`, and `userInfo` into `SharedLayout`.
 
-3. **Demographics Chart** - Column chart with:
-   - Age group breakdown (children, adults, elderly)
-   - Daily data
-   - Period selector
-   - Hover tooltips
+## Manager Dashboard Features
 
-4. **Calendar** (Right sidebar):
+1. **KPI Cards** — visits, patients, appointments
+2. **NotificationBadge** — incomplete profiles (`onViewDetails`; `onDismiss` optional)
+3. **Calendar** (Right sidebar):
    - Month navigation
    - Activity indicators
    - Back to today button
@@ -211,20 +195,21 @@ src/
 │       │   ├── Sidebar.tsx
 │       │   ├── Topbar.tsx
 │       │   ├── KPICard.tsx
-│       │   ├── DemographicsChart.tsx
-│       │   ├── RightSidebarCalendar.tsx
-│       │   ├── NotificationBadge.tsx
+│       │   ├── DemographicsChart.tsx (reserved)
+│       │   ├── DoctorLayoutWrapper.tsx
+│       │   ├── ManagerLayoutWrapper.tsx
+│       │   ├── AITrainerLayoutWrapper.tsx
+│       │   ├── PatientLayoutWrapper.tsx
 │       │   └── index.ts
-│       └── manager-dashboard-new.tsx (NEW)
+│       └── patient/ (patient screens)
 ```
 
-## Next Steps
+## Migration status
 
-1. **Update each role's components** to use SharedLayout
-2. **Replace all colors** with COLORS constants
-3. **Update existing styling** to match new palette
-4. **Test responsive design** on different screen sizes
-5. **Integrate with existing state management** (contexts)
+- [x] Doctor, Manager, AI Trainer use `*LayoutWrapper` + SharedLayout
+- [x] Patient role + PatientLayoutWrapper
+- [x] Color tokens in `tokens.css`
+- [ ] Responsive/mobile polish (optional)
 
 ## Color Usage Examples
 
@@ -246,4 +231,4 @@ className={`${COLOR_CLASSES.DARK} ${COLOR_CLASSES.TEXT_DARK}`}
 
 ## Testing
 
-The new `manager-dashboard-new.tsx` includes all new components in action. Test by importing this component to see the complete design system.
+Run `npm run dev` and log in per role. See [SCREEN_MAP.md](SCREEN_MAP.md) and demo accounts in [README.md](README.md).

@@ -37,6 +37,8 @@ Ghi chú kỹ thuật: Các lưu ý về môi trường triển khai (Deployment
 Chuyên gia có thể Lưu nháp cấu hình, Lưu hoàn tất để đóng phiên huấn luyện, hoặc Xuất báo cáo (Export) kết quả đánh giá. Hệ thống hỗ trợ tách riêng:
 Báo cáo triển khai: Dành cho bộ phận DevOps/Product (chứa các chỉ số hiệu năng).
 Ghi chú nội bộ: Dành riêng cho đội ngũ chuyên gia AI để nghiên cứu sâu hơn.
+> **Scope note:** Sections **7–8** below are **Phase 2 / out of current MVP**. Implemented today: basic prompt editor + mock test chat tab (`prompt-configuration.tsx`). Not in scope: version control, blind test, guardrails, RLHF panel.
+
 7. Cấu hình Prompt & Kiểm thử Chatbot
 Trình soạn thảo Prompt 
 System Role: Ô nhập liệu lớn để định nghĩa vai trò (Ví dụ: "Bạn là một chuyên gia tư vấn y tế thấu cảm, sử dụng kết quả chẩn đoán từ hệ thống để đưa ra lời khuyên...").
