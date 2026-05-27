@@ -6,24 +6,26 @@ import {
   usePatient,
   SPECIALTIES,
   MOCK_DOCTORS,
-  MOCK_CLINICS,
   TIME_SLOTS,
 } from '../patient-context';
 
-const STEPS = ['specialty', 'doctor', 'clinic', 'datetime', 'previsit', 'confirm', 'success'] as const;
+const STEPS = ['specialty', 'doctor', 'datetime', 'previsit', 'confirm', 'success'] as const;
 type Step = (typeof STEPS)[number];
 
 interface AppointmentBookingWizardProps {
   onDone: () => void;
+  compact?: boolean;
 }
 
-export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardProps) {
+const inputClassName =
+  'w-full px-4 py-3 rounded-3xl border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]';
+
+export function AppointmentBookingWizard({ onDone, compact = false }: AppointmentBookingWizardProps) {
   const { addAppointment, bookingPrefill, setBookingPrefill } = usePatient();
   const [step, setStep] = useState<Step>('specialty');
   const [symptomInput, setSymptomInput] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [doctorId, setDoctorId] = useState<number | null>(null);
-  const [clinic, setClinic] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [preVisitNotes, setPreVisitNotes] = useState('');
@@ -51,13 +53,15 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
   };
 
   const confirmBooking = () => {
-    if (!doctor || !clinic || !date || !time) return;
+    if (!doctor || !date || !time) return;
     const { code } = addAppointment({
       specialty,
       doctorName: doctor.name,
-      clinicName: clinic,
+      clinicName: 'Phòng khám trung tâm',
       date,
       time,
+      notes: preVisitNotes,
+      pendingDoctorReply: true,
     });
     setAppointmentCode(code);
     setStep('success');
@@ -65,11 +69,22 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
   };
 
   const todayIso = new Date().toISOString().split('T')[0];
-
   const stepIndex = STEPS.indexOf(step);
 
+  const BackButton = ({ target }: { target: Step }) => (
+    <button
+      type="button"
+      onClick={() => setStep(target)}
+      className="absolute left-5 top-5 w-10 h-10 rounded-3xl border flex items-center justify-center"
+      style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY }}
+      aria-label="Quay lại"
+    >
+      <ArrowLeft size={18} />
+    </button>
+  );
+
   return (
-    <div className="space-y-4 p-2 max-w-3xl">
+    <div className={`space-y-4 ${compact ? '' : 'p-2 max-w-3xl'}`}>
       {step !== 'success' && (
         <div className="flex gap-2 text-xs" style={{ color: COLORS.TEXT_SECONDARY }}>
           Bước {stepIndex + 1} / {STEPS.length - 1}
@@ -77,7 +92,7 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
       )}
 
       {step === 'specialty' && (
-        <div className="rounded-3xl p-6 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+        <div className="relative rounded-3xl p-6 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
           <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
             Chọn chuyên khoa
           </h3>
@@ -88,8 +103,8 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
             <textarea
               value={symptomInput}
               onChange={(e) => setSymptomInput(e.target.value)}
-              className="w-full px-4 py-3 rounded-3xl border text-sm"
-              style={{ borderColor: COLORS.BORDER }}
+              className={inputClassName}
+              style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
               placeholder="Mô tả triệu chứng..."
               rows={3}
             />
@@ -132,7 +147,8 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
       )}
 
       {step === 'doctor' && (
-        <div className="rounded-3xl p-6 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+        <div className="relative rounded-3xl p-6 pt-16 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+          <BackButton target="specialty" />
           <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
             Chọn bác sĩ — {specialty}
           </h3>
@@ -155,61 +171,21 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
               </p>
             </button>
           ))}
-          <div className="flex gap-2">
-            <button type="button" onClick={() => setStep('specialty')} className="px-4 py-2 rounded-3xl border">
-              <ArrowLeft size={18} />
-            </button>
-            <button
-              type="button"
-              disabled={!doctorId}
-              onClick={() => setStep('clinic')}
-              className="px-6 py-3 rounded-3xl text-white disabled:opacity-50"
-              style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-            >
-              Tiếp tục
-            </button>
-          </div>
-        </div>
-      )}
-
-      {step === 'clinic' && (
-        <div className="rounded-3xl p-6 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
-          <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
-            Chọn phòng khám
-          </h3>
-          {MOCK_CLINICS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setClinic(c)}
-              className="w-full p-4 rounded-3xl border-2 text-left"
-              style={{
-                borderColor: clinic === c ? COLORS.BUTTON_CHOSEN : COLORS.BORDER,
-                backgroundColor: clinic === c ? COLORS.HOVER : COLORS.GRAY,
-              }}
-            >
-              {c}
-            </button>
-          ))}
-          <div className="flex gap-2">
-            <button type="button" onClick={() => setStep('doctor')} className="px-4 py-2 rounded-3xl border">
-              Quay lại
-            </button>
-            <button
-              type="button"
-              disabled={!clinic}
-              onClick={() => setStep('datetime')}
-              className="px-6 py-3 rounded-3xl text-white disabled:opacity-50"
-              style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-            >
-              Tiếp tục
-            </button>
-          </div>
+          <button
+            type="button"
+            disabled={!doctorId}
+            onClick={() => setStep('datetime')}
+            className="px-6 py-3 rounded-3xl text-white disabled:opacity-50"
+            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+          >
+            Tiếp tục
+          </button>
         </div>
       )}
 
       {step === 'datetime' && (
-        <div className="rounded-3xl p-6 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+        <div className="relative rounded-3xl p-6 pt-16 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+          <BackButton target="doctor" />
           <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
             Chọn ngày giờ
           </h3>
@@ -218,8 +194,8 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
             value={date}
             min={todayIso}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-4 py-3 rounded-3xl border"
-            style={{ borderColor: COLORS.BORDER }}
+            className={inputClassName}
+            style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
           />
           <div className="flex flex-wrap gap-2">
             {TIME_SLOTS.map((t) => (
@@ -238,25 +214,21 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
               </button>
             ))}
           </div>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => setStep('clinic')} className="px-4 py-2 rounded-3xl border">
-              Quay lại
-            </button>
-            <button
-              type="button"
-              disabled={!date || !time}
-              onClick={() => setStep('previsit')}
-              className="px-6 py-3 rounded-3xl text-white disabled:opacity-50"
-              style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-            >
-              Tiếp tục
-            </button>
-          </div>
+          <button
+            type="button"
+            disabled={!date || !time}
+            onClick={() => setStep('previsit')}
+            className="px-6 py-3 rounded-3xl text-white disabled:opacity-50"
+            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+          >
+            Tiếp tục
+          </button>
         </div>
       )}
 
       {step === 'previsit' && (
-        <div className="rounded-3xl p-6 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+        <div className="relative rounded-3xl p-6 pt-16 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+          <BackButton target="datetime" />
           <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
             Phiếu khám trước (tùy chọn)
           </h3>
@@ -265,14 +237,17 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
               <textarea
                 value={preVisitNotes}
                 onChange={(e) => setPreVisitNotes(e.target.value)}
-                className="w-full px-4 py-3 rounded-3xl border min-h-[100px]"
-                style={{ borderColor: COLORS.BORDER }}
+                className={`${inputClassName} min-h-[100px]`}
+                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
                 placeholder="Tiền sử, thuốc đang dùng..."
               />
-              <label className="block text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
+              <label
+                className="flex items-center justify-center rounded-3xl border border-dashed px-4 py-4 text-sm cursor-pointer"
+                style={{ borderColor: COLORS.BUTTON_CHOSEN, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.HOVER }}
+              >
+                <input type="file" className="sr-only" />
                 Upload kết quả xét nghiệm (mock)
               </label>
-              <input type="file" className="text-sm" />
             </>
           )}
           <button
@@ -295,43 +270,35 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
       )}
 
       {step === 'confirm' && doctor && (
-        <div className="rounded-3xl p-6 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+        <div className="relative rounded-3xl p-6 pt-16 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+          <BackButton target="previsit" />
           <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
             Xác nhận đặt lịch
           </h3>
           <dl className="space-y-2 text-sm">
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-4">
               <dt style={{ color: COLORS.TEXT_SECONDARY }}>Chuyên khoa</dt>
               <dd style={{ color: COLORS.TEXT_PRIMARY }}>{specialty}</dd>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-4">
               <dt style={{ color: COLORS.TEXT_SECONDARY }}>Bác sĩ</dt>
               <dd style={{ color: COLORS.TEXT_PRIMARY }}>{doctor.name}</dd>
             </div>
-            <div className="flex justify-between">
-              <dt style={{ color: COLORS.TEXT_SECONDARY }}>Phòng khám</dt>
-              <dd style={{ color: COLORS.TEXT_PRIMARY }}>{clinic}</dd>
-            </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-4">
               <dt style={{ color: COLORS.TEXT_SECONDARY }}>Thời gian</dt>
               <dd style={{ color: COLORS.TEXT_PRIMARY }}>
                 {date} {time}
               </dd>
             </div>
           </dl>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => setStep('specialty')} className="px-4 py-2 rounded-3xl border">
-              Chỉnh sửa
-            </button>
-            <button
-              type="button"
-              onClick={confirmBooking}
-              className="flex items-center gap-2 px-6 py-3 rounded-3xl text-white"
-              style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-            >
-              <Check size={18} /> Xác nhận
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={confirmBooking}
+            className="flex items-center gap-2 px-6 py-3 rounded-3xl text-white"
+            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+          >
+            <Check size={18} /> Xác nhận
+          </button>
         </div>
       )}
 
@@ -343,7 +310,7 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
           </h3>
           <p style={{ color: COLORS.TEXT_SECONDARY }}>Mã hẹn: {appointmentCode}</p>
           <p className="text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
-            Vui lòng có mặt trước 15 phút. Mang theo CMND và kết quả XN (nếu có).
+            Vui lòng có mặt trước 15 phút. Mang theo CMND và kết quả XN nếu có.
           </p>
           <button
             type="button"
@@ -351,7 +318,7 @@ export function AppointmentBookingWizard({ onDone }: AppointmentBookingWizardPro
             className="px-6 py-3 rounded-3xl text-white"
             style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
           >
-            Về trang chủ
+            Hoàn tất
           </button>
         </div>
       )}

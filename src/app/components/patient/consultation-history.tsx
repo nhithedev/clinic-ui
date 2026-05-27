@@ -2,88 +2,111 @@ import { useState } from 'react';
 import { COLORS } from '@/styles/colors';
 import { usePatient, PatientConsultation } from '../patient-context';
 
+const levelLabel = (level: string) => {
+  if (level === 'mild') return 'Nhẹ';
+  if (level === 'urgent') return 'Khẩn';
+  return 'Trung bình';
+};
+
 export function ConsultationHistory() {
   const { consultations } = usePatient();
   const [selected, setSelected] = useState<PatientConsultation | null>(null);
 
-  const levelLabel = (l: string) => {
-    if (l === 'mild') return 'Nhẹ';
-    if (l === 'urgent') return 'Khẩn';
-    return 'Trung bình';
-  };
-
   if (selected) {
-    return (
-      <div className="rounded-3xl p-6 space-y-4 max-w-2xl" style={{ backgroundColor: COLORS.WHITE }}>
-        <button type="button" onClick={() => setSelected(null)} className="text-sm" style={{ color: COLORS.BUTTON_CHOSEN }}>
+  return (
+    <div className="h-full min-h-0 w-full min-w-0 px-2 md:px-6 flex flex-col gap-4 overflow-hidden">
+      <div
+        className="rounded-3xl p-6 space-y-4 flex-shrink-0"
+        style={{ backgroundColor: COLORS.WHITE }}
+      >
+        <button
+          type="button"
+          onClick={() => setSelected(null)}
+          className="text-sm"
+          style={{ color: COLORS.BUTTON_CHOSEN }}
+        >
           ← Danh sách
         </button>
-        <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
-          Chi tiết cuộc tư vấn
-        </h3>
-        <p className="text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
-          {new Date(selected.date).toLocaleString('vi-VN')} · {levelLabel(selected.level)}
-        </p>
-        <p className="text-sm" style={{ color: COLORS.TEXT_PRIMARY }}>
-          {selected.summary}
-        </p>
-        <div className="space-y-2 max-h-64 overflow-y-auto">
-          {selected.messages.map((m, i) => (
+
+        <div>
+          <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
+            Chi tiết cuộc tư vấn
+          </h3>
+          <p className="text-sm mt-1" style={{ color: COLORS.TEXT_SECONDARY }}>
+            {new Date(selected.date).toLocaleString('vi-VN')} · {levelLabel(selected.level)}
+          </p>
+        </div>
+      </div>
+
+      <div
+        className="rounded-3xl p-5 space-y-4 w-full min-w-0 flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+        style={{ backgroundColor: COLORS.GRAY }}
+      >
+        {selected.messages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex w-full min-w-0 ${
+              message.role === 'user' ? 'justify-end' : 'justify-start'
+            }`}
+          >
             <div
-              key={i}
-              className="text-sm p-3 rounded-3xl"
+              className="max-w-[78%] min-w-0 px-5 py-4 rounded-3xl text-sm leading-6 whitespace-pre-wrap break-words overflow-hidden"
               style={{
-                backgroundColor: m.role === 'user' ? COLORS.LIGHTER : COLORS.GRAY,
-                color: COLORS.TEXT_PRIMARY,
+                backgroundColor: message.role === 'user' ? COLORS.BUTTON_CHOSEN : COLORS.WHITE,
+                color: message.role === 'user' ? COLORS.WHITE : COLORS.TEXT_PRIMARY,
               }}
             >
-              <strong>{m.role === 'user' ? 'Bạn' : 'AI'}:</strong> {m.content}
+              {message.content}
             </div>
-          ))}
-        </div>
-        {selected.rating && (
-          <p className="text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
-            Đánh giá: {selected.rating}/5 sao
+          </div>
+        ))}
+      </div>
+
+      <p className="text-xs px-2 flex-shrink-0" style={{ color: COLORS.TEXT_SECONDARY }}>
+        Cuộc tư vấn cũ chỉ xem lại, không thể nhắn thêm.
+      </p>
+    </div>
+  );
+}
+
+  return (
+    <div className="w-full min-w-0 px-2 md:px-6 overflow-hidden">
+      <div className="rounded-3xl overflow-hidden" style={{ backgroundColor: COLORS.WHITE }}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr style={{ backgroundColor: COLORS.GRAY }}>
+              <th className="text-left p-3">Ngày</th>
+              <th className="text-left p-3">Mức độ</th>
+              <th className="text-left p-3">Tóm tắt</th>
+            </tr>
+          </thead>
+          <tbody>
+            {consultations.map((consultation) => (
+              <tr
+                key={consultation.id}
+                className="border-t cursor-pointer"
+                style={{ borderColor: COLORS.BORDER }}
+                onClick={() => setSelected(consultation)}
+              >
+                <td className="p-3" style={{ color: COLORS.TEXT_SECONDARY }}>
+                  {new Date(consultation.date).toLocaleDateString('vi-VN')}
+                </td>
+                <td className="p-3">{levelLabel(consultation.level)}</td>
+                <td className="p-3" style={{ color: COLORS.TEXT_PRIMARY }}>
+                  {consultation.summary.slice(0, 80)}
+                  {consultation.summary.length > 80 ? '…' : ''}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {consultations.length === 0 && (
+          <p className="p-6 text-center text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
+            Chưa có lịch sử tư vấn
           </p>
         )}
       </div>
-    );
-  }
-
-  return (
-    <div className="rounded-3xl overflow-hidden" style={{ backgroundColor: COLORS.WHITE }}>
-      <table className="w-full text-sm">
-        <thead>
-          <tr style={{ backgroundColor: COLORS.GRAY }}>
-            <th className="text-left p-3">Ngày</th>
-            <th className="text-left p-3">Mức độ</th>
-            <th className="text-left p-3">Tóm tắt</th>
-          </tr>
-        </thead>
-        <tbody>
-          {consultations.map((c) => (
-            <tr
-              key={c.id}
-              className="border-t cursor-pointer"
-              style={{ borderColor: COLORS.BORDER }}
-              onClick={() => setSelected(c)}
-            >
-              <td className="p-3" style={{ color: COLORS.TEXT_SECONDARY }}>
-                {new Date(c.date).toLocaleDateString('vi-VN')}
-              </td>
-              <td className="p-3">{levelLabel(c.level)}</td>
-              <td className="p-3" style={{ color: COLORS.TEXT_PRIMARY }}>
-                {c.summary.slice(0, 50)}…
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {consultations.length === 0 && (
-        <p className="p-6 text-center text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
-          Chưa có lịch sử tư vấn
-        </p>
-      )}
     </div>
   );
 }

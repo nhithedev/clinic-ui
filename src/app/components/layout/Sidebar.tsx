@@ -6,6 +6,7 @@ interface SidebarItem {
   label: string;
   icon: ReactNode;
   onClick: (id: string) => void;
+  badge?: number;
 }
 
 interface SidebarProps {
@@ -23,10 +24,9 @@ export const Sidebar = ({ logo, items, activeItem }: SidebarProps) => {
       className="fixed left-0 top-0 h-screen w-56 flex flex-col"
       style={{ backgroundColor: COLORS.WHITE }}
     >
-      {/* Logo */}
       <div className="p-6 flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+          className="w-10 h-10 rounded-3xl flex items-center justify-center text-white font-bold text-lg"
           style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
         >
           {logo || 'C'}
@@ -36,11 +36,11 @@ export const Sidebar = ({ logo, items, activeItem }: SidebarProps) => {
         </span>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto text-sm">
         {navItems.map((item) => (
           <button
             key={item.id}
+            type="button"
             onClick={() => item.onClick(item.id)}
             className={`w-full flex items-center gap-2 px-4 py-3 rounded-3xl transition-colors duration-200 ${
               activeItem === item.id ? 'font-base' : ''
@@ -56,16 +56,27 @@ export const Sidebar = ({ logo, items, activeItem }: SidebarProps) => {
               if (activeItem !== item.id) e.currentTarget.style.backgroundColor = 'transparent';
             }}
           >
-            <span className="text-lg">{item.icon}</span>
-            <span>{item.label}</span>
+            <span className="text-lg flex-shrink-0">{item.icon}</span>
+            <span className="flex-1 text-left">{item.label}</span>
+            {item.badge && item.badge > 0 ? (
+              <span
+                className="min-w-5 h-5 px-1.5 rounded-full text-[11px] leading-5 text-center font-medium"
+                style={{
+                  backgroundColor: activeItem === item.id ? COLORS.WHITE : COLORS.BUTTON_CHOSEN,
+                  color: activeItem === item.id ? COLORS.BUTTON_CHOSEN : COLORS.WHITE,
+                }}
+              >
+                {item.badge > 99 ? '99+' : item.badge}
+              </span>
+            ) : null}
           </button>
         ))}
       </nav>
 
-      {/* Logout at bottom */}
       <div className="p-4">
         {logoutItem ? (
           <button
+            type="button"
             onClick={() => logoutItem.onClick(logoutItem.id)}
             className="w-full flex items-center justify-start gap-3 px-4 py-3 rounded-3xl text-sm"
             style={{ color: COLORS.TEXT_SECONDARY }}

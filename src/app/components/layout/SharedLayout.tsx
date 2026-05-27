@@ -8,6 +8,7 @@ type SidebarItem = {
   label: string;
   icon: ReactNode;
   onClick: (id: string) => void;
+  badge?: number;
 };
 
 type SharedLayoutProps = {
@@ -24,6 +25,12 @@ type SharedLayoutProps = {
   onSettingsClick?: () => void;
   showSearch?: boolean;
   showSettings?: boolean;
+  showTopbar?: boolean;
+  showFooter?: boolean;
+  contentClassName?: string;
+  contentStyle?: React.CSSProperties;
+  mainClassName?: string;
+  mainStyle?: React.CSSProperties;
 };
 
 export const SharedLayout = ({
@@ -39,48 +46,66 @@ export const SharedLayout = ({
   onSettingsClick,
   showSearch = true,
   showSettings = true,
+  showTopbar = true,
+  showFooter = true,
+  contentClassName,
+  contentStyle,
+  mainClassName,
+  mainStyle,
 }: SharedLayoutProps) => {
   return (
-    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: COLORS.WHITE}}>
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: COLORS.WHITE }}>
       <Sidebar items={sidebarItems} activeItem={activeItem} />
 
       <div className="flex-1 flex flex-col overflow-hidden ml-56">
-        <Topbar
-          title={title}
-          description={description}
-          userName={userInfo.name}
-          userRole={userInfo.role}
-          userAvatar={userInfo.avatar}
-          onSearch={onSearchChange}
-          onSettingsClick={onSettingsClick}
-          showSearch={showSearch}
-          showSettings={showSettings}
-        />
+        {showTopbar && (
+          <Topbar
+            title={title}
+            description={description}
+            userName={userInfo.name}
+            userRole={userInfo.role}
+            userAvatar={userInfo.avatar}
+            onSearch={onSearchChange}
+            onSettingsClick={onSettingsClick}
+            showSearch={showSearch}
+            showSettings={showSettings}
+          />
+        )}
 
-        <div className="flex-1 flex flex-col overflow-hidden mt-16"> {/* mt-16 thay vì mt-20, chỉnh độ cao của topbar */}
-          <main className="flex-1 overflow-y-auto p-4 min-h-0">
-  <div className="flex gap-4">
-    <section
-      className="flex-1 min-w-0 rounded-3xl p-3 flex flex-col min-h-fit"
-      style={{ backgroundColor: COLORS.GRAY }}
-    >
-      <div className="flex-1">
-        {children}
-      </div>
-    </section>
+        <div
+          className={`flex-1 flex flex-col overflow-hidden ${showTopbar ? 'mt-16' : ''}`}
+        >
+          <main
+            className={`flex-1 overflow-y-auto min-h-0 ${mainClassName ?? 'p-4'}`}
+            style={mainStyle}
+          >
+            <div className="flex gap-4 h-full min-h-0">
+              <section
+                className={
+                  contentClassName ??
+                  'flex-1 min-w-0 rounded-3xl p-3 flex flex-col min-h-fit'
+                }
+                style={contentStyle ?? { backgroundColor: COLORS.GRAY }}
+              >
+                <div className="flex-1 min-h-0">{children}</div>
+              </section>
 
-    {rightSidebar ? (
-      <aside className={`${rightSidebarWidth} flex-shrink-0 overflow-y-auto`}>
-        {rightSidebar}
-      </aside>
-    ) : null}
-  </div>
+              {rightSidebar ? (
+                <aside className={`${rightSidebarWidth} flex-shrink-0 overflow-y-auto`}>
+                  {rightSidebar}
+                </aside>
+              ) : null}
+            </div>
 
-  {/* Footer nằm trong vùng scroll, ngoài vùng xám */}
-  <footer className="mt-4 py-3 text-center text-xs" style={{ color: '#9CA3AF' }}>
-    <p>© 2024 Clinic Management System. All rights reserved.</p>
-  </footer>
-</main>
+            {showFooter && (
+              <footer
+                className="mt-4 py-3 text-center text-xs"
+                style={{ color: COLORS.TEXT_LIGHT }}
+              >
+                <p>© 2024 Clinic Management System. All rights reserved.</p>
+              </footer>
+            )}
+          </main>
         </div>
       </div>
     </div>

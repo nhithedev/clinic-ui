@@ -9,23 +9,32 @@ export function PatientNotifications() {
 
   if (selected) {
     return (
-      <div className="rounded-3xl p-6 max-w-lg space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
-        <button type="button" onClick={() => setSelectedId(null)} className="text-sm" style={{ color: COLORS.BUTTON_CHOSEN }}>
-          ← Danh sách
-        </button>
-        <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
-          {selected.title}
-        </h3>
-        <p className="text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
-          {new Date(selected.time).toLocaleString('vi-VN')}
-        </p>
-        <p style={{ color: COLORS.TEXT_PRIMARY }}>{selected.body}</p>
+      <div className="w-full px-2 md:px-6">
+        <div className="rounded-3xl p-6 w-full space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+          <button
+            type="button"
+            onClick={() => setSelectedId(null)}
+            className="text-sm"
+            style={{ color: COLORS.BUTTON_CHOSEN }}
+          >
+            ← Danh sách
+          </button>
+          <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
+            {selected.title}
+          </h3>
+          <p className="text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
+            {new Date(selected.time).toLocaleString('vi-VN')}
+          </p>
+          <p className="leading-7" style={{ color: COLORS.TEXT_PRIMARY }}>
+            {selected.body}
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="w-full px-2 md:px-6 space-y-2">
       {notifications.map((n) => (
         <button
           key={n.id}
@@ -51,6 +60,12 @@ export function PatientNotifications() {
           </p>
         </button>
       ))}
+
+      {notifications.length === 0 && (
+        <p className="p-6 text-center text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
+          Chưa có thông báo
+        </p>
+      )}
     </div>
   );
 }

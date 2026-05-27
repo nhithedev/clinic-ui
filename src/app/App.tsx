@@ -26,6 +26,7 @@ import { AITrainerProvider } from './components/ai-trainer-context';
 import { PatientProvider } from './components/patient-context';
 import { PatientLayoutWrapper } from './components/layout/PatientLayoutWrapper';
 import { PatientRoutes } from './components/patient/patient-routes';
+import { COLORS } from '@/styles/colors';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
@@ -37,12 +38,12 @@ export default function App() {
 
   const handleLogin = (role: string) => {
     setCurrentUser(role);
-    setCurrentPage(role === 'patient' ? 'home' : 'dashboard');
+    setCurrentPage(role === 'patient' ? 'symptom-consultation' : 'dashboard');
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
-    setCurrentPage('home');
+    setCurrentPage('symptom-consultation');
     setTrainingView('main');
     setSelectedRequestId(null);
     setConsultationView('list');
@@ -209,12 +210,19 @@ export default function App() {
   return (
     <>
       <Toaster position="top-right" richColors />
-      <div className="size-full flex items-center justify-center bg-[#f8fafb]">
+      <div
+        className="size-full flex items-center justify-center"
+        style={{ backgroundColor: COLORS.GRAY }}
+      >
         <div className="text-center">
-          <h2 className="text-[#1a3a52] mb-4">Unknown Role</h2>
+          <h2 className="mb-4" style={{ color: COLORS.TEXT_PRIMARY }}>
+            Unknown Role
+          </h2>
           <button
+            type="button"
             onClick={handleLogout}
-            className="px-6 py-3 bg-[#2c7da0] text-white rounded-lg hover:bg-[#24698a] transition-colors"
+            className="px-6 py-3 text-white rounded-3xl hover:opacity-90 transition-colors"
+            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
           >
             Đăng xuất
           </button>

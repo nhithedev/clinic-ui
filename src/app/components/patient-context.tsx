@@ -12,6 +12,16 @@ export interface PatientAppointment {
   date: string;
   time: string;
   status: AppointmentStatus;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  notes?: string;
+  pendingDoctorReply?: boolean;
+}
+
+export interface PatientChatMessage {
+  role: 'user' | 'bot';
+  content: string;
 }
 
 export interface PatientConsultation {
@@ -20,7 +30,7 @@ export interface PatientConsultation {
   summary: string;
   level: ConsultationLevel;
   rating?: number;
-  messages: { role: 'user' | 'bot'; content: string }[];
+  messages: PatientChatMessage[];
 }
 
 export interface PatientNotification {
@@ -39,12 +49,16 @@ interface PatientProfile {
   medicalHistory: string[];
 }
 
+interface AppointmentPayload extends Omit<PatientAppointment, 'id' | 'code' | 'status'> {
+  code?: string;
+}
+
 interface PatientContextValue {
   profile: PatientProfile;
   appointments: PatientAppointment[];
   consultations: PatientConsultation[];
   notifications: PatientNotification[];
-  addAppointment: (apt: Omit<PatientAppointment, 'id' | 'code' | 'status'>) => { id: number; code: string };
+  addAppointment: (apt: AppointmentPayload) => { id: number; code: string };
   rescheduleAppointment: (id: number, date: string, time: string) => void;
   cancelAppointment: (id: number, reason?: string) => void;
   addConsultation: (c: Omit<PatientConsultation, 'id'>) => number;
@@ -67,6 +81,7 @@ const initialAppointments: PatientAppointment[] = [
     date: '2026-06-01',
     time: '09:00',
     status: 'upcoming',
+    pendingDoctorReply: true,
   },
   {
     id: 2,
@@ -90,6 +105,11 @@ const initialConsultations: PatientConsultation[] = [
     messages: [
       { role: 'bot', content: 'Xin chào, bạn đang gặp triệu chứng gì?' },
       { role: 'user', content: 'Tôi bị đau đầu 2 ngày nay' },
+      {
+        role: 'bot',
+        content:
+          'Tôi hiểu rồi. Đau đầu nhẹ có thể liên quan đến căng thẳng, thiếu ngủ hoặc mất nước. Bạn nên nghỉ ngơi, uống đủ nước và theo dõi thêm.',
+      },
     ],
   },
 ];
@@ -115,9 +135,9 @@ export function PatientProvider({ children }: { children: ReactNode }) {
   ]);
   const [bookingPrefill, setBookingPrefill] = useState<{ specialty?: string } | null>(null);
 
-  const addAppointment = (apt: Omit<PatientAppointment, 'id' | 'code' | 'status'>) => {
+  const addAppointment = (apt: AppointmentPayload) => {
     const id = Date.now();
-    const code = `APT-${id}`;
+    const code = apt.code || `APT-${id}`;
     setAppointments((prev) => [
       ...prev,
       {
@@ -129,9 +149,9 @@ export function PatientProvider({ children }: { children: ReactNode }) {
     ]);
     setNotifications((prev) => [
       {
-        id: Date.now(),
+        id: Date.now() + 1,
         title: 'Đặt lịch thành công',
-        body: `Mã hẹn ${code} — ${apt.date} ${apt.time}`,
+        body: `Mã hẹn ${code} — ${apt.date} ${apt.time}. Lịch khám đã gửi đến bác sĩ, khi có phản hồi hệ thống sẽ gửi mail cho bạn.`,
         time: new Date().toISOString(),
         read: false,
       },
@@ -142,7 +162,7 @@ export function PatientProvider({ children }: { children: ReactNode }) {
 
   const rescheduleAppointment = (id: number, date: string, time: string) => {
     setAppointments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, date, time } : a)),
+      prev.map((a) => (a.id === id ? { ...a, date, time, pendingDoctorReply: true } : a)),
     );
     setNotifications((prev) => [
       {
@@ -231,6 +251,8 @@ export const MOCK_DOCTORS = [
   { id: 1, name: 'BS. Nguyễn Văn A', specialty: 'Tim mạch', exp: '15 năm', rating: 4.8 },
   { id: 2, name: 'BS. Trần Thị B', specialty: 'Tim mạch', exp: '10 năm', rating: 4.6 },
   { id: 3, name: 'BS. Lê Văn C', specialty: 'Nội khoa', exp: '12 năm', rating: 4.7 },
+  { id: 4, name: 'BS. Phạm Hoàng D', specialty: 'Da liễu', exp: '9 năm', rating: 4.6 },
+  { id: 5, name: 'BS. Võ Minh E', specialty: 'Tai Mũi Họng', exp: '11 năm', rating: 4.7 },
 ];
 
 export const MOCK_CLINICS = ['Phòng khám Tim TP.HCM', 'Bệnh viện Đa khoa ABC', 'PK Quận 1'];

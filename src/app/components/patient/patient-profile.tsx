@@ -5,6 +5,9 @@ import { usePatient } from '../patient-context';
 
 type Tab = 'info' | 'edit' | 'health';
 
+const inputClassName =
+  'w-full px-4 py-3 rounded-3xl border focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]';
+
 export function PatientProfile() {
   const { profile, updateProfile } = usePatient();
   const [tab, setTab] = useState<Tab>('info');
@@ -18,7 +21,7 @@ export function PatientProfile() {
   };
 
   return (
-    <div className="space-y-4 max-w-2xl p-2">
+    <div className="w-full max-w-5xl mx-auto px-2 md:px-6 space-y-4">
       <div className="flex gap-2 flex-wrap">
         {(['info', 'edit', 'health'] as Tab[]).map((t) => (
           <button
@@ -59,16 +62,26 @@ export function PatientProfile() {
             <input
               type="password"
               placeholder="Mật khẩu hiện tại"
-              className="w-full mb-2 px-4 py-2 rounded-3xl border"
+              className={`${inputClassName} mb-2`}
+              style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY }}
               value={passwords.current}
               onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
             />
             <input
               type="password"
               placeholder="Mật khẩu mới"
-              className="w-full mb-2 px-4 py-2 rounded-3xl border"
+              className={`${inputClassName} mb-2`}
+              style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY }}
               value={passwords.next}
               onChange={(e) => setPasswords({ ...passwords, next: e.target.value })}
+            />
+            <input
+              type="password"
+              placeholder="Xác nhận mật khẩu mới"
+              className={`${inputClassName} mb-2`}
+              style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY }}
+              value={passwords.confirm}
+              onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
             />
             <button
               type="button"
@@ -85,19 +98,22 @@ export function PatientProfile() {
       {tab === 'edit' && (
         <div className="rounded-3xl p-6 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
           <input
-            className="w-full px-4 py-3 rounded-3xl border"
+            className={inputClassName}
+            style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY }}
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="Họ tên"
           />
           <input
-            className="w-full px-4 py-3 rounded-3xl border"
+            className={inputClassName}
+            style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY }}
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
             placeholder="SĐT"
           />
           <input
-            className="w-full px-4 py-3 rounded-3xl border"
+            className={inputClassName}
+            style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY }}
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             placeholder="Email"
