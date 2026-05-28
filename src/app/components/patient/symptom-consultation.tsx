@@ -225,7 +225,20 @@ export function SymptomConsultation() {
       setMode('free-chat');
     }
   };
+const autoSaveConversation = (
+  savedMessages: PatientChatMessage[],
+  summary: string,
+  level: ConsultationLevel,
+) => {
+  addConsultation({
+    date: new Date().toISOString(),
+    summary: summary.slice(0, 120) || 'Cuộc trò chuyện tư vấn sức khỏe',
+    level,
+    messages: savedMessages,
+  });
 
+  toast.success('Đã lưu vào lịch sử trò chuyện');
+};
   const submitConsultForm = () => {
     if (!consultForm.symptoms.trim()) {
       toast.error('Vui lòng nhập triệu chứng');
@@ -249,12 +262,7 @@ export function SymptomConsultation() {
 
     const savedMessages = [...messages, ...nextMessages];
 
-    addConsultation({
-      date: new Date().toISOString(),
-      summary: consultForm.symptoms.slice(0, 120),
-      level,
-      messages: savedMessages,
-    });
+    autoSaveConversation(savedMessages, consultForm.symptoms, level);
 
     setMessages(savedMessages);
     setLastLevel(level);
@@ -340,13 +348,23 @@ export function SymptomConsultation() {
       pendingDoctorReply: true,
     });
 
-    appendMessages(
-      { role: 'user', content: 'Có, tôi xác nhận đặt lịch khám' },
-      {
-        role: 'bot',
-        content: `Hệ thống đã đặt lịch khám cho bạn. Mã hẹn ${code}. Vui lòng có mặt trước 15 phút, mang theo giấy tờ tùy thân và kết quả xét nghiệm nếu có. Lịch khám đã gửi đến bác sĩ, khi có phản hồi hệ thống sẽ gửi mail cho bạn. Bạn cần tư vấn thêm gì không?`,
-      },
-    );
+    const bookingSuccessMessages: PatientChatMessage[] = [
+  { role: 'user', content: 'Có, tôi xác nhận đặt lịch khám' },
+  {
+    role: 'bot',
+    content: `Hệ thống đã đặt lịch khám cho bạn. Mã hẹn ${code}. Vui lòng có mặt trước 15 phút, mang theo giấy tờ tùy thân và kết quả xét nghiệm nếu có. Lịch khám đã gửi đến bác sĩ, khi có phản hồi hệ thống sẽ gửi mail cho bạn. Bạn cần tư vấn thêm gì không?`,
+  },
+];
+
+const savedMessages = [...messages, ...bookingSuccessMessages];
+
+setMessages(savedMessages);
+
+autoSaveConversation(
+  savedMessages,
+  `Đặt lịch khám thành công: ${bookingForm.specialty} với ${selectedDoctor.name}`,
+  assessLevel(savedMessages.map((message) => message.content).join(' ')),
+);
 
     setBookingForm({
       name: profile.name,
@@ -468,14 +486,26 @@ export function SymptomConsultation() {
       level,
     });
 
-    appendMessages({
-      role: 'bot',
-      content:
-        'Tôi đã gửi cuộc trò chuyện này cho bác sĩ. Bác sĩ sẽ xem xét và phản hồi trong mục Tư vấn bác sĩ sớm nhất.',
-    });
+    const doctorSentMessages: PatientChatMessage[] = [
+  {
+    role: 'bot',
+    content:
+      'Tôi đã gửi cuộc trò chuyện này cho bác sĩ. Bác sĩ sẽ xem xét và phản hồi trong mục Tư vấn bác sĩ sớm nhất.',
+  },
+];
+
+const savedMessages = [...messages, ...doctorSentMessages];
+
+setMessages(savedMessages);
+
+autoSaveConversation(
+  savedMessages,
+  lastUserMessage?.content || 'Cuộc trò chuyện đã gửi bác sĩ tư vấn',
+  level,
+);
 
     setShowDoctorConfirm(false);
-    toast.success('Đã gửi cho bác sĩ và sẽ được xử lý sớm nhất');
+    toast.success('Đã tóm tắt trò chuyện và gửi cho bác sĩ tư vấn');
   };
 
   const renderChatInput = (isPinned = false) => (
@@ -498,7 +528,7 @@ export function SymptomConsultation() {
               type="button"
               onClick={handleSendFreeText}
               aria-label="Gửi tin nhắn"
-              className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0"
+              className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 transition-all duration-200 hover:brightness-110"
               style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
             >
               <Send size={20} />
@@ -510,7 +540,7 @@ export function SymptomConsultation() {
             onClick={saveCurrentConversation}
             aria-label="Lưu lịch sử trò chuyện"
             title="Lưu lịch sử trò chuyện"
-            className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2"
+            className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2 transition-all duration-200 hover:brightness-110"
             style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
           >
             <Save size={20} />
@@ -521,16 +551,16 @@ export function SymptomConsultation() {
             onClick={openDoctorConfirm}
             aria-label="Gửi bác sĩ tư vấn"
             title="Gửi bác sĩ tư vấn"
-            className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2"
-            style={{ backgroundColor: COLORS.DARK }}
+            className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2 transition-all duration-200 hover:brightness-110"
+            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
           >
             <Stethoscope size={20} />
           </button>
         </div>
 
         <p className="mt-2 px-2 text-xs leading-5" style={{ color: COLORS.TEXT_SECONDARY }}>
-          Lưu ý: Ngoài trường hợp Tư vấn - Khai triệu chứng, trò chuyện không tự lưu.
-          Nếu muốn giữ lại nội dung trò chuyện cũ, bạn cần bấm nút lưu lịch sử trò chuyện.
+          Trò chuyện sẽ tự lưu khi AI chẩn đoán, đặt lịch thành công và gửi tư vấn cho bác sĩ.
+          Ngoài trường hợp đó, bạn cần bấm nút lưu lịch sử trò chuyện để có thể xem lại.
         </p>
       </div>
     </div>

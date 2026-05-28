@@ -119,7 +119,7 @@ export function Login({ onLogin }: LoginProps) {
         style={{ backgroundColor: 'var(--color-white)' }}
       >
         <div
-          className="w-full max-w-lg h-full flex flex-col gap-4 overflow-hidden"
+          className="w-full max-w-lg h-full flex flex-col gap-4 overflow-y-auto"
           style={{ paddingTop: LOGIN_TOP_PADDING, paddingBottom: LOGIN_BOTTOM_PADDING }}
         >
           <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export function Login({ onLogin }: LoginProps) {
           </div>
 
           {!isPatient && (
-            <form onSubmit={handleStaffLogin} className="space-y-3 mt-1">
+            <form onSubmit={handleStaffLogin} className="space-y-3 mt-1 px-1">
               <Field
                 label="Tên đăng nhập"
                 value={username}
@@ -202,7 +202,7 @@ export function Login({ onLogin }: LoginProps) {
           )}
 
           {isPatient && (
-            <form onSubmit={handlePatientLogin} className="space-y-3 mt-1">
+            <form onSubmit={handlePatientLogin} className="space-y-3 mt-1 px-1">
               <Field
                 label="SĐT hoặc Email"
                 value={username}
@@ -358,7 +358,7 @@ function RegisterModal({
         </div>
 
         {mode === 'register' && (
-          <form onSubmit={onRegister} className="space-y-3">
+          <form onSubmit={onRegister} className="space-y-3 px-1">
             <Field label="Họ và tên" value={registerName} onChange={setRegisterName} />
             <Field label="Số điện thoại" value={registerPhone} onChange={setRegisterPhone} />
             <Field label="Email" value={registerEmail} onChange={setRegisterEmail} type="email" />
@@ -392,7 +392,7 @@ function RegisterModal({
         )}
 
         {mode === 'otp' && (
-          <form onSubmit={onOtp} className="space-y-4">
+          <form onSubmit={onOtp} className="space-y-4 px-1">
             <p className="text-sm" style={{ color: COLOR_HEX.TEXT_SECONDARY }}>
               Nhập mã OTP đã gửi tới {registerPhone || 'SĐT của bạn'} (demo: 123456)
             </p>
@@ -447,9 +447,9 @@ function Field({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2.5 rounded-3xl border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]"
+        className="w-full px-4 py-2.5 rounded-3xl border text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-button-chosen)]"
         style={{
-          backgroundColor: COLOR_HEX.HOVER,
+          backgroundColor: 'var(--color-white)',
           borderColor: COLOR_HEX.BORDER,
           color: COLOR_HEX.TEXT_PRIMARY,
         }}
@@ -481,9 +481,9 @@ function PasswordField({
           type={show ? 'text' : 'password'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full px-4 py-2.5 pr-12 rounded-3xl border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]"
+          className="w-full px-4 py-2.5 pr-12 rounded-3xl border text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-button-chosen)]"
           style={{
-            backgroundColor: COLOR_HEX.HOVER,
+            backgroundColor: 'var(--color-white)',
             borderColor: COLOR_HEX.BORDER,
             color: COLOR_HEX.TEXT_PRIMARY,
           }}

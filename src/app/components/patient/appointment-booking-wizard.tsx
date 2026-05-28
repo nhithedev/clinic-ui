@@ -23,7 +23,11 @@ const inputClassName =
 export function AppointmentBookingWizard({ onDone, compact = false }: AppointmentBookingWizardProps) {
   const { addAppointment, bookingPrefill, setBookingPrefill } = usePatient();
   const [step, setStep] = useState<Step>('specialty');
-  const [symptomInput, setSymptomInput] = useState('');
+  const [consultForm, setConsultForm] = useState({
+    symptoms: '',
+    medicalHistory: '',
+    extraInfo: '',
+  });
   const [specialty, setSpecialty] = useState('');
   const [doctorId, setDoctorId] = useState<number | null>(null);
   const [date, setDate] = useState('');
@@ -43,8 +47,8 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
   const doctor = MOCK_DOCTORS.find((d) => d.id === doctorId);
   const filteredDoctors = MOCK_DOCTORS.filter((d) => !specialty || d.specialty === specialty);
 
-  const suggestSpecialty = () => {
-    if (!symptomInput.trim()) {
+  const submitConsultForm = () => {
+    if (!consultForm.symptoms.trim()) {
       toast.error('Vui lòng nhập triệu chứng');
       return;
     }
@@ -70,6 +74,8 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
 
   const todayIso = new Date().toISOString().split('T')[0];
   const stepIndex = STEPS.indexOf(step);
+  const progressSteps = STEPS.length - 1;
+  const progressValue = step === 'success' ? progressSteps : Math.min(stepIndex + 1, progressSteps);
 
   const BackButton = ({ target }: { target: Step }) => (
     <button
@@ -86,32 +92,59 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
   return (
     <div className={`space-y-4 ${compact ? '' : 'p-2 max-w-3xl'}`}>
       {step !== 'success' && (
-        <div className="flex gap-2 text-xs" style={{ color: COLORS.TEXT_SECONDARY }}>
-          Bước {stepIndex + 1} / {STEPS.length - 1}
+        <div className="space-y-2">
+          <div className="flex gap-2 text-xs" style={{ color: COLORS.TEXT_SECONDARY }}>
+            Bước {stepIndex + 1} / {progressSteps}
+          </div>
+          <div
+            className="h-2 rounded-full border overflow-hidden"
+            style={{ borderColor: COLORS.BORDER, backgroundColor: COLORS.WHITE }}
+            aria-hidden="true"
+          >
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${(progressValue / progressSteps) * 100}%`,
+                backgroundColor: COLORS.BUTTON_CHOSEN,
+              }}
+            />
+          </div>
         </div>
       )}
 
       {step === 'specialty' && (
         <div className="relative rounded-3xl p-6 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
           <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
-            Chọn chuyên khoa
+            Chọn chuyên khoa (nếu không rõ, điền triệu chứng để được AI gợi ý)
           </h3>
-          <div className="rounded-3xl p-4" style={{ backgroundColor: COLORS.GRAY }}>
-            <p className="text-sm mb-2" style={{ color: COLORS.TEXT_SECONDARY }}>
-              Không chắc chuyên khoa? Nhập triệu chứng để AI gợi ý
-            </p>
+          <div className="rounded-3xl p-5 space-y-4" style={{ backgroundColor: COLORS.GRAY }}>
             <textarea
-              value={symptomInput}
-              onChange={(e) => setSymptomInput(e.target.value)}
+              value={consultForm.symptoms}
+              onChange={(e) => setConsultForm((prev) => ({ ...prev, symptoms: e.target.value }))}
               className={inputClassName}
               style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-              placeholder="Mô tả triệu chứng..."
+              placeholder="Triệu chứng"
+              rows={3}
+            />
+            <input
+              value={consultForm.medicalHistory}
+              onChange={(e) => setConsultForm((prev) => ({ ...prev, medicalHistory: e.target.value }))}
+              className={inputClassName}
+              style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
+              placeholder="Tiền sử bệnh"
+            />
+            <textarea
+              value={consultForm.extraInfo}
+              onChange={(e) => setConsultForm((prev) => ({ ...prev, extraInfo: e.target.value }))}
+              className={inputClassName}
+              style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
+              placeholder="Thông tin bổ sung"
               rows={3}
             />
             <button
               type="button"
-              onClick={suggestSpecialty}
-              className="mt-2 px-4 py-2 rounded-3xl text-white text-sm"
+              onClick={submitConsultForm}
+              className="px-6 py-3 rounded-3xl text-white text-sm"
               style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
             >
               Gợi ý chuyên khoa
@@ -246,7 +279,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
                 style={{ borderColor: COLORS.BUTTON_CHOSEN, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.HOVER }}
               >
                 <input type="file" className="sr-only" />
-                Upload kết quả xét nghiệm (mock)
+                Upload kết quả xét nghiệm
               </label>
             </>
           )}

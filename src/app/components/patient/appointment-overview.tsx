@@ -57,7 +57,7 @@ export function AppointmentOverview() {
 />
       </div>
 
-      <aside className="rounded-3xl p-4 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+      <aside className="rounded-3xl p-4 space-y-4 xl:mt-10" style={{ backgroundColor: COLORS.WHITE }}>
         <div>
           <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
             Lịch hẹn của tôi

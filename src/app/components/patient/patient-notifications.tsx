@@ -6,6 +6,7 @@ export function PatientNotifications() {
   const { notifications, markNotificationRead } = usePatient();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const selected = notifications.find((n) => n.id === selectedId);
+  const hasUnread = notifications.some((n) => !n.read);
 
   if (selected) {
     return (
@@ -35,6 +36,21 @@ export function PatientNotifications() {
 
   return (
     <div className="w-full px-2 md:px-6 space-y-2">
+      <div className="flex justify-end pb-1">
+        <button
+          type="button"
+          onClick={() => notifications.filter((n) => !n.read).forEach((n) => markNotificationRead(n.id))}
+          disabled={!hasUnread}
+          className="text-sm font-medium px-4 py-2 rounded-full transition-all duration-200 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100"
+          style={{
+            backgroundColor: hasUnread ? COLORS.BUTTON_CHOSEN : COLORS.GRAY,
+            color: hasUnread ? COLORS.WHITE : COLORS.TEXT_SECONDARY,
+          }}
+        >
+          Đánh dấu tất cả đã đọc
+        </button>
+      </div>
+
       {notifications.map((n) => (
         <button
           key={n.id}
