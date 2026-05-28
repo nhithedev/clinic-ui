@@ -13,12 +13,15 @@ import {
 
 type ChatMode =
   | 'pre-chat'
+  | 'quick-actions'
   | 'consult-form'
   | 'post-advice'
   | 'free-chat'
   | 'booking-form'
   | 'booking-confirm'
   | 'booking-no-doctor';
+
+type ConsultationIntent = 'general' | 'booking';
 
 interface ConsultationForm {
   symptoms: string;
@@ -125,7 +128,7 @@ export function SymptomConsultation() {
   const [messages, setMessages] = useState<PatientChatMessage[]>([initialBotMessage]);
   const [input, setInput] = useState('');
   const [mode, setMode] = useState<ChatMode>('pre-chat');
-  const [lastLevel, setLastLevel] = useState<ConsultationLevel>('moderate');
+  const [consultIntent, setConsultIntent] = useState<ConsultationIntent>('general');
   const [suggestedSpecialty, setSuggestedSpecialty] = useState('Nội khoa');
   const [noMoreBookingPrompt, setNoMoreBookingPrompt] = useState(false);
   const [showDoctorConfirm, setShowDoctorConfirm] = useState(false);
@@ -154,11 +157,15 @@ export function SymptomConsultation() {
     setMessages((prev) => [...prev, ...nextMessages]);
   };
 
-  const startConsultation = (seed?: string) => {
-    const nextSymptoms = seed?.trim() || '';
+  const startConsultation = (
+    userBubble = 'Tôi cần tư vấn',
+    seedSymptoms = '',
+    intent: ConsultationIntent = 'general',
+  ) => {
+    const nextSymptoms = seedSymptoms.trim();
 
     const nextMessages: PatientChatMessage[] = [
-      { role: 'user', content: nextSymptoms || 'Tôi cần tư vấn' },
+      { role: 'user', content: userBubble },
       {
         role: 'bot',
         content:
@@ -167,8 +174,10 @@ export function SymptomConsultation() {
     ];
 
     setConsultForm((prev) => ({ ...prev, symptoms: nextSymptoms }));
+    setConsultIntent(intent);
     appendMessages(...nextMessages);
     setInput('');
+    setNoMoreBookingPrompt(false);
     setMode('consult-form');
   };
 
@@ -197,7 +206,7 @@ export function SymptomConsultation() {
     const text = input.trim();
 
     if (mode === 'pre-chat') {
-      startConsultation(text);
+      startConsultation('Tôi cần tư vấn', text, 'general');
       return;
     }
 
@@ -211,7 +220,6 @@ export function SymptomConsultation() {
           : buildAdvice(level, text, specialty);
 
     setInput('');
-    setLastLevel(level);
     setSuggestedSpecialty(specialty);
 
     appendMessages(
@@ -260,16 +268,24 @@ const autoSaveConversation = (
       { role: 'bot', content: advice },
     ];
 
+    if (consultIntent === 'booking') {
+      nextMessages.push({
+        role: 'bot',
+        content:
+          'Cảm ơn bạn đã cung cấp thông tin. Mình đã chuẩn bị form đặt lịch ngay bên dưới để bạn hoàn tất đăng ký khám.',
+      });
+    }
+
     const savedMessages = [...messages, ...nextMessages];
 
     autoSaveConversation(savedMessages, consultForm.symptoms, level);
 
     setMessages(savedMessages);
-    setLastLevel(level);
     setSuggestedSpecialty(specialty);
     setBookingForm((prev) => ({ ...prev, specialty }));
     setConsultForm({ symptoms: '', medicalHistory: '', extraInfo: '' });
-    setMode('post-advice');
+    setConsultIntent('general');
+    setMode(consultIntent === 'booking' ? 'booking-form' : 'post-advice');
   };
 
   const addBookingSlot = () => {
@@ -398,27 +414,7 @@ autoSaveConversation(
     }
 
     if (choice === 'more') {
-      if (lastLevel === 'urgent') {
-        appendMessages(
-          { role: 'user', content: 'Muốn tư vấn thêm' },
-          {
-            role: 'bot',
-            content:
-              'Tôi vẫn cần nhấn mạnh rằng dấu hiệu này có thể nguy cấp, bạn nên đi khám ngay. Nếu bạn muốn mô tả thêm, hãy nhập triệu chứng hoặc thông tin mới bên dưới.',
-          },
-        );
-        setNoMoreBookingPrompt(false);
-      } else {
-        appendMessages(
-          { role: 'user', content: 'Muốn tư vấn thêm' },
-          {
-            role: 'bot',
-            content: 'Bạn có thể mô tả thêm triệu chứng, thời gian xuất hiện, mức độ đau hoặc thuốc đã dùng.',
-          },
-        );
-      }
-
-      setMode('free-chat');
+      startConsultation('Muốn tư vấn thêm', '', 'general');
       return;
     }
 
@@ -431,8 +427,33 @@ autoSaveConversation(
     );
 
     setNoMoreBookingPrompt(true);
-    setMode('free-chat');
+    setMode('quick-actions');
   };
+
+  const renderQuickActionButtons = () => (
+    <div className="flex flex-wrap justify-center gap-3 pt-2">
+      <button
+        type="button"
+        onClick={() => startConsultation('Tôi cần đặt lịch khám bệnh', '', 'booking')}
+        className="px-5 py-3 rounded-3xl text-sm text-white"
+        style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+      >
+        Tôi cần đặt lịch khám bệnh
+      </button>
+      <button
+        type="button"
+        onClick={() => startConsultation('Tôi cần tư vấn', '', 'general')}
+        className="px-5 py-3 rounded-3xl border text-sm"
+        style={{
+          borderColor: COLORS.BORDER,
+          color: COLORS.TEXT_PRIMARY,
+          backgroundColor: COLORS.WHITE,
+        }}
+      >
+        Tôi cần tư vấn
+      </button>
+    </div>
+  );
 
   const saveCurrentConversation = () => {
     const userMessages = messages.filter((message) => message.role === 'user');
@@ -584,30 +605,9 @@ autoSaveConversation(
             </div>
           ))}
 
-          {mode === 'pre-chat' && (
-            <div className="flex flex-wrap justify-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => startBooking('Nội khoa')}
-                className="px-5 py-3 rounded-3xl text-sm text-white"
-                style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-              >
-                Tôi cần đặt lịch khám bệnh
-              </button>
-              <button
-                type="button"
-                onClick={() => startConsultation()}
-                className="px-5 py-3 rounded-3xl border text-sm"
-                style={{
-                  borderColor: COLORS.BORDER,
-                  color: COLORS.TEXT_PRIMARY,
-                  backgroundColor: COLORS.WHITE,
-                }}
-              >
-                Tôi cần tư vấn
-              </button>
-            </div>
-          )}
+          {mode === 'pre-chat' && renderQuickActionButtons()}
+
+          {mode === 'quick-actions' && renderQuickActionButtons()}
 
           {mode === 'consult-form' && (
             <div className="rounded-3xl p-5 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
