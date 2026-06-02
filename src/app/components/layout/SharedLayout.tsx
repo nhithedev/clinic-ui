@@ -44,8 +44,8 @@ export const SharedLayout = ({
   userInfo,
   onSearchChange,
   onSettingsClick,
-  showSearch = true,
-  showSettings = true,
+  showSearch = false,
+  showSettings = false,
   showTopbar = true,
   showFooter = true,
   contentClassName,
@@ -74,33 +74,39 @@ export const SharedLayout = ({
 
         <div className="flex-1 flex flex-col overflow-hidden min-h-0">
           <main
-            className={`flex-1 overflow-y-auto min-h-0 ${mainClassName ?? 'p-4'}`}
+            // Thay đổi: Biến main thành một flex container theo chiều dọc, không cho cuộn ở đây nữa
+            className={`flex-1 flex flex-col overflow-hidden min-h-0 ${mainClassName ?? 'p-4'}`}
             style={mainStyle}
           >
-            <div className="flex items-stretch gap-4 min-h-full">
+            {/* VÙNG CHỨA CONTENT: Nằm gọn giữa Topbar và Footer, không thể tràn qua khung này */}
+            <div className="flex-1 flex items-stretch gap-4 min-h-0 min-w-0">
+              
+              {/* Thẻ section bao bọc nội dung children, cho phép cuộn nội dung độc lập tại đây */}
               <section
                 className={
                   contentClassName ??
-                  'flex-1 min-w-0 rounded-3xl p-3 flex flex-col min-h-full self-stretch'
+                  'flex-1 min-w-0 rounded-3xl p-4 flex flex-col overflow-y-auto h-full'
                 }
                 style={contentStyle ?? { backgroundColor: COLORS.GRAY }}
               >
-                <div className="flex-1 min-h-full">{children}</div>
+                <div className="w-full">{children}</div>
               </section>
 
+              {/* Right Sidebar nếu có, cuộn độc lập không ảnh hưởng đến phần còn lại */}
               {rightSidebar ? (
-                <aside className={`${rightSidebarWidth} flex-shrink-0 overflow-y-auto`}>
+                <aside className={`${rightSidebarWidth} flex-shrink-0 overflow-y-auto h-full`}>
                   {rightSidebar}
                 </aside>
               ) : null}
             </div>
 
+            {/* FOOTER: Luôn luôn cố định ở đáy màn hình */}
             {showFooter && (
               <footer
-                className="mt-4 py-3 text-center text-xs"
+                className="mt-3 pt-2 text-center text-xs flex-shrink-0"
                 style={{ color: COLORS.TEXT_LIGHT }}
               >
-                <p>© 2024 Clinic Management System. All rights reserved.</p>
+                <p>© 2026 Clinic Management System. All rights reserved.</p>
               </footer>
             )}
           </main>

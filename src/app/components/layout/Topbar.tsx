@@ -21,8 +21,8 @@ export const Topbar = ({
   userRole,
   onSearch,
   onSettingsClick,
-  showSearch = true,
-  showSettings = true,
+  showSearch = false,
+  showSettings = false,
 }: TopbarProps) => {
   return (
     <div 
