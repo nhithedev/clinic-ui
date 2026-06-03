@@ -1,4 +1,4 @@
-import { X, Phone, Mail, MapPin, Calendar, MessageSquare, FileText, AlertCircle, CircleHelp, Bot, Check } from 'lucide-react';
+import { X, Phone, Mail, MapPin, Calendar, MessageSquare, FileText, AlertCircle, CircleHelp, Bot } from 'lucide-react';
 
 interface PatientQuickViewProps {
   patient: any;

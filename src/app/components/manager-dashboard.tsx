@@ -6,7 +6,7 @@ import { COLORS } from '@/styles/colors';
 import { Users, Stethoscope, Activity } from 'lucide-react';
 
 export function ManagerDashboard() {
-  const { accounts, activities } = useManager();
+  const {  activities } = useManager();
 
   const appointmentChartSeries: ApexAxisChartSeries = [
     { name: 'Trẻ em', data: [44, 55, 57, 56, 61, 58, 63] },
@@ -30,7 +30,7 @@ export function ManagerDashboard() {
     grid: { borderColor: '#E5E7EB' },
   };
 
-  const activeAccounts = accounts.filter(a => a.status === 'active');
+ // const activeAccounts = accounts.filter(a => a.status === 'active');
 
   const todayActivities = activities.filter(a => {
     const activityDate = new Date(a.time).toDateString();

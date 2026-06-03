@@ -237,12 +237,12 @@ export function ScheduleManagement() {
     0,
   );
 
-  const filteredDoctors = currentSchedules.filter(
+ /* const filteredDoctors = currentSchedules.filter(
     (doctor) =>
       searchQuery === "" ||
       doctor.doctorName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-
+*/
 
   return (
     <div className="h-full flex flex-col overflow-hidden p-4">
