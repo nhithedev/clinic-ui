@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, X, Check, Eye, ChevronDown } from 'lucide-react';
 import { Menu } from '@headlessui/react';
 import { useManager } from './manager-context';
@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 type Role = 'all' | 'patient' | 'doctor' | 'manager' | 'ai-trainer';
 
 export function AccountManagement() {
-  const { accounts, addAccount, updateAccount, deleteAccount } = useManager();
+  const { accounts, addAccount, updateAccount, deleteAccount, pendingEditAccountId, setPendingEditAccountId } = useManager();
   const [activeTab, setActiveTab] = useState<Role>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -52,6 +52,11 @@ export function AccountManagement() {
       account.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       account.phone.includes(searchQuery);
     return matchesTab && matchesSearch;
+  }).sort((a, b) => {
+    const aIncomplete = (a.role === 'doctor' || a.role === 'ai-trainer') && !a.isProfileComplete;
+    const bIncomplete = (b.role === 'doctor' || b.role === 'ai-trainer') && !b.isProfileComplete;
+    if (aIncomplete === bIncomplete) return 0;
+    return aIncomplete ? -1 : 1;
   });
 
   const getRoleLabel = (role: string) => {
@@ -134,11 +139,58 @@ export function AccountManagement() {
     });
   };
 
+  useEffect(() => {
+    if (pendingEditAccountId !== null) {
+      const account = accounts.find(a => a.id === pendingEditAccountId);
+      if (account) handleEdit(account);
+      setPendingEditAccountId(null);
+    }
+  }, [pendingEditAccountId, accounts, setPendingEditAccountId]);
+
   const handleSave = () => {
-    if (!formData.name || !formData.email || !formData.phone) {
+    if (!formData.name || !formData.email || !formData.phone || !formData.username) {
       toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
+    
+    // Validate password for new accounts
+    if (!editingAccount && !formData.password) {
+      toast.error('Vui lòng nhập mật khẩu');
+      return;
+    }
+
+    // Validate doctor fields if editing a doctor
+    if (editingAccount && formData.role === 'doctor') {
+      if (!formData.specialty || !formData.licenseNumber || !formData.dateOfBirth || !formData.address || !formData.experience) {
+        toast.error('Vui lòng điền đầy đủ thông tin bác sĩ');
+        return;
+      }
+      if (formData.education.filter(e => e.trim()).length === 0) {
+        toast.error('Vui lòng nhập ít nhất 1 trình độ học vấn');
+        return;
+      }
+      if (formData.certifications.filter(c => c.trim()).length === 0) {
+        toast.error('Vui lòng nhập ít nhất 1 chứng chỉ');
+        return;
+      }
+    }
+
+    // Validate AI trainer fields if editing an AI trainer
+    if (editingAccount && formData.role === 'ai-trainer') {
+      if (!formData.availability || !formData.schedule) {
+        toast.error('Vui lòng điền đầy đủ thông tin chuyên gia AI');
+        return;
+      }
+      if (formData.specialtyArray.length === 0) {
+        toast.error('Vui lòng chọn ít nhất 1 lĩnh vực chuyên sâu');
+        return;
+      }
+      if (formData.certifications.filter(c => c.trim()).length === 0) {
+        toast.error('Vui lòng nhập ít nhất 1 chứng chỉ');
+        return;
+      }
+    }
+
     setShowSaveConfirm(true);
   };
 
@@ -209,34 +261,32 @@ export function AccountManagement() {
   
 
   return (
-    <div className="p-8">
-      <div className="mb-6 flex items-center justify-between gap-4">
-  {/* Search — bên trái */}
-  <div className="relative max-w-md flex-1">
-    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
-    <input
-      type="text"
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      placeholder="Tìm theo tên, email, SĐT..."
-      className="w-full pl-10 pr-4 py-2 bg-white rounded-3xl focus:outline-none focus:ring-1 focus:ring-[#E2E2E2]"
-    />
-  </div>
+    <div className="h-full flex flex-col overflow-hidden p-4">
+      {/* Toolbar */}
+      <div className="mb-4 flex items-center justify-between gap-4 flex-shrink-0">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Tìm theo tên, email, SĐT..."
+            className="w-full pl-10 pr-4 py-2 bg-white rounded-3xl focus:outline-none focus:ring-1 focus:ring-[#E2E2E2]"
+          />
+        </div>
+        <button
+          onClick={handleCreate}
+          className="flex items-center gap-2 px-4 py-2 bg-[#479AA8] text-white rounded-3xl hover:bg-[#1F4A51] transition-colors flex-shrink-0"
+        >
+          <Plus className="w-5 h-5" />
+          Tạo tài khoản mới
+        </button>
+      </div>
 
-  {/* Button — bên phải */}
-  <button
-    onClick={handleCreate}
-    className="flex items-center gap-2 px-4 py-2 bg-[#479AA8] text-white rounded-3xl hover:bg-[#1F4A51] transition-colors flex-shrink-0"
-  >
-    <Plus className="w-5 h-5" />
-    Tạo tài khoản mới
-  </button>
-</div>
-
-      {/* Card wrapper for tabs and table */}
-      <div className="bg-white rounded-3xl overflow-hidden">
-        {/* Tabs Section with padding */}
-        <div className="px-6 pt-6">
+      {/* Card wrapper — fills remaining height, only table scrolls */}
+      <div className="flex-1 min-h-0 bg-white rounded-3xl flex flex-col overflow-hidden">
+        {/* Tabs */}
+        <div className="px-6 pt-6 flex-shrink-0">
           <div className="flex gap-2 overflow-x-auto pb-4 -mx-6 px-6">
             {tabs.map((tab) => (
               <button
@@ -264,10 +314,9 @@ export function AccountManagement() {
           </div>
         </div>
 
-        {/* Accounts Table Section */}
-        <div className="px-6 py-6">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px]">
+        {/* Table — scrollable area */}
+        <div className="flex-1 min-h-0 overflow-auto px-6 pb-6">
+          <table className="w-full min-w-[800px]">
           <thead className="bg-[#F5F5F7] border-b border-[#E5E7EB]">
             <tr>
               <th className="px-6 py-4 text-left text-sm text-[#6B7280] whitespace-nowrap">Tên</th>
@@ -331,7 +380,6 @@ export function AccountManagement() {
             ))}
           </tbody>
         </table>
-            </div>
         </div>
       </div>
 
@@ -529,18 +577,19 @@ export function AccountManagement() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[#1F4A51] mb-2">Họ và tên *</label>
+                    <label className="block text-[#1F4A51] mb-2">Họ và tên <span className="text-red-600">*</span></label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
                       className="w-full px-4 py-3 bg-[#f4f8fa] rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E2E2E2]"
-                      placeholder="Nhập họ và tên"
+                      placeholder="VD: Nguyễn Văn A..."
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[#1F4A51] mb-2">Vai trò *</label>
+                    <label className="block text-[#1F4A51] mb-2">Vai trò <span className="text-red-600">*</span></label>
                     <Menu as="div" className="relative">
                       <Menu.Button
                         disabled={!!editingAccount}
@@ -579,24 +628,26 @@ export function AccountManagement() {
                   </div>
 
                   <div>
-                    <label className="block text-[#1F4A51] mb-2">Email *</label>
+                    <label className="block text-[#1F4A51] mb-2">Email <span className="text-red-600">*</span></label>
                       <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
                         className="w-full px-4 py-3 bg-[#f4f8fa] rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E2E2E2]"
-                      placeholder="Nhập email"
+                      placeholder="VD: abc@email.com"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[#1F4A51] mb-2">Số điện thoại *</label>
+                    <label className="block text-[#1F4A51] mb-2">Số điện thoại <span className="text-red-600">*</span></label>
                       <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
                         className="w-full px-4 py-3 bg-[#f4f8fa] rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E2E2E2]"
-                      placeholder="Nhập số điện thoại"
+                      placeholder="VD: 0987..."
                     />
                   </div>
                 </div>
@@ -606,11 +657,12 @@ export function AccountManagement() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[#1F4A51] mb-2">Tên đăng nhập *</label>
+                    <label className="block text-[#1F4A51] mb-2">Tên đăng nhập <span className="text-red-600">*</span></label>
                       <input
                       type="text"
                       value={formData.username}
                       onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      required
                       className="w-full px-4 py-3 bg-[#f4f8fa] rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E2E2E2]"
                       placeholder="Nhập tên đăng nhập"
                     />
@@ -630,7 +682,7 @@ export function AccountManagement() {
                     </div>
                   ) : (
                     <div>
-                      <label className="block text-[#1F4A51] mb-2">Mật khẩu *</label>
+                      <label className="block text-[#1F4A51] mb-2">Mật khẩu <span className="text-red-600">*</span></label>
                       <input
                         type="password"
                         value={formData.password}
@@ -649,7 +701,7 @@ export function AccountManagement() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[#1F4A51] mb-2">Chuyên khoa *</label>
+                        <label className="block text-[#1F4A51] mb-2">Chuyên khoa <span className="text-red-600">*</span></label>
                         <input
                           type="text"
                           value={formData.specialty}
@@ -660,7 +712,7 @@ export function AccountManagement() {
                       </div>
 
                       <div>
-                        <label className="block text-[#1F4A51] mb-2">Số chứng chỉ hành nghề *</label>
+                        <label className="block text-[#1F4A51] mb-2">Số chứng chỉ hành nghề <span className="text-red-600">*</span></label>
                         <input
                           type="text"
                           value={formData.licenseNumber}
@@ -671,7 +723,7 @@ export function AccountManagement() {
                       </div>
 
                       <div>
-                        <label className="block text-[#1F4A51] mb-2">Ngày sinh *</label>
+                        <label className="block text-[#1F4A51] mb-2">Ngày sinh <span className="text-red-600">*</span></label>
                         <input
                           type="date"
                           value={formData.dateOfBirth}
@@ -681,7 +733,7 @@ export function AccountManagement() {
                       </div>
 
                       <div>
-                        <label className="block text-[#1F4A51] mb-2">Kinh nghiệm *</label>
+                        <label className="block text-[#1F4A51] mb-2">Kinh nghiệm <span className="text-red-600">*</span></label>
                         <input
                           type="text"
                           value={formData.experience}
@@ -693,7 +745,7 @@ export function AccountManagement() {
                     </div>
 
                     <div>
-                      <label className="block text-[#1F4A51] mb-2">Địa chỉ *</label>
+                      <label className="block text-[#1F4A51] mb-2">Địa chỉ <span className="text-red-600">*</span></label>
                       <input
                         type="text"
                         value={formData.address}
@@ -788,10 +840,11 @@ export function AccountManagement() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[#1F4A51] mb-2">Trạng thái *</label>
+                        <label className="block text-[#1F4A51] mb-2">Trạng thái <span className="text-red-600">*</span></label>
                         <select
                           value={formData.availability}
                           onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
+                          required
                           className="w-full px-4 py-3 bg-[#f4f8fa] border border-[#E5E7EB] rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
                         >
                           <option value="">Chọn trạng thái</option>
@@ -802,11 +855,12 @@ export function AccountManagement() {
                       </div>
 
                       <div>
-                        <label className="block text-[#1F4A51] mb-2">Lịch trực *</label>
+                        <label className="block text-[#1F4A51] mb-2">Lịch trực <span className="text-red-600">*</span></label>
                         <input
                           type="text"
                           value={formData.schedule}
                           onChange={(e) => setFormData({ ...formData, schedule: e.target.value })}
+                          required
                           className="w-full px-4 py-3 bg-[#f4f8fa] border border-[#E5E7EB] rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
                           placeholder="VD: Thứ 2 - Thứ 6: 9:00 - 18:00"
                         />
@@ -814,7 +868,7 @@ export function AccountManagement() {
                     </div>
 
                     <div>
-                      <label className="block text-[#1F4A51] mb-2">Lĩnh vực chuyên sâu * (ít nhất 1)</label>
+                      <label className="block text-[#1F4A51] mb-2">Lĩnh vực chuyên sâu (ít nhất 1) <span className="text-red-600">*</span></label>
                       <div className="space-y-2 mb-3">
                         {['NLP', 'Computer Vision', 'Healthcare AI', 'Recommendation Systems', 'Time Series Analysis'].map(spec => (
                           <label key={spec} className="flex items-center gap-2">
@@ -837,7 +891,7 @@ export function AccountManagement() {
                     </div>
 
                     <div>
-                      <label className="block text-[#1F4A51] mb-2">Chứng chỉ chuyên môn * (ít nhất 1)</label>
+                      <label className="block text-[#1F4A51] mb-2">Chứng chỉ chuyên môn (ít nhất 1) <span className="text-red-600">*</span></label>
                       {formData.certifications.map((cert, index) => (
                         <div key={index} className="flex gap-2 mb-2">
                           <input
@@ -868,7 +922,7 @@ export function AccountManagement() {
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, certifications: [...formData.certifications, ''] })}
-                        className="text-sm text-[#8b5cf6] hover:underline"
+                        className="text-sm text-[#479AA8] hover:underline"
                       >
                         + Thêm chứng chỉ
                       </button>

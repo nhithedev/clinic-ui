@@ -138,12 +138,12 @@ export function DoctorProfile() {
             </div>
           </div>
 
-          {/* Note */}
+          {/* Note
           <div className="bg-[#FFFFFF] rounded-3xl p-4">
             <p className="text-sm text-[#1F4A51]">
               Để cập nhật thông tin cá nhân, vui lòng liên hệ quản lý phòng khám.
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
