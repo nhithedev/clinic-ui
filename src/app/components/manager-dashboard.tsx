@@ -1,31 +1,51 @@
-import { useState } from 'react';
+import ReactApexChart from 'react-apexcharts';
+import type { ApexAxisChartSeries, ApexOptions } from 'apexcharts';
 import { useManager } from './manager-context';
 import { KPICard } from './layout/KPICard';
-import { NotificationBadge } from './layout/NotificationBadge';
 import { COLORS } from '@/styles/colors';
-import { Users, Stethoscope, Activity, X } from 'lucide-react';
+import { Users, Stethoscope, Activity } from 'lucide-react';
 
 export function ManagerDashboard() {
-  const { accounts, activities, getIncompleteProfiles } = useManager();
+  const { accounts, activities } = useManager();
 
-  const incompleteProfiles = getIncompleteProfiles();
+  const appointmentChartSeries: ApexAxisChartSeries = [
+    { name: 'Trẻ em', data: [44, 55, 57, 56, 61, 58, 63] },
+    { name: 'Người trưởng thành', data: [76, 85, 101, 98, 87, 105, 91] },
+    { name: 'Người già', data: [35, 41, 36, 26, 45, 48, 52] },
+  ];
+
+  const appointmentChartOptions: ApexOptions = {
+    chart: { type: 'bar', height: 350, toolbar: { show: false } },
+    plotOptions: {
+      bar: { horizontal: false, columnWidth: '55%', borderRadius: 5, borderRadiusApplication: 'end' },
+    },
+    dataLabels: { enabled: false },
+    stroke: { show: true, width: 2, colors: ['transparent'] },
+    xaxis: { categories: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'] },
+    yaxis: { title: { text: undefined }, tickAmount: 5, forceNiceScale: true },
+    fill: { opacity: 1 },
+    colors: ['#E2E2E4', '#479AA8', '#1F4A51'],
+    tooltip: { y: { formatter: (val: number) => `${val} bệnh nhân` } },
+    legend: { show: false },
+    grid: { borderColor: '#E5E7EB' },
+  };
+
   const activeAccounts = accounts.filter(a => a.status === 'active');
-  
-  // Calculate KPI stats
+
   const todayActivities = activities.filter(a => {
     const activityDate = new Date(a.time).toDateString();
     const today = new Date().toDateString();
     return activityDate === today;
   });
-  
+
   const yesterdayActivities = activities.filter(a => {
     const activityDate = new Date(a.time);
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     return activityDate.toDateString() === yesterday.toDateString();
   });
-  
-  const visitChangePercent = yesterdayActivities.length > 0 
+
+  const visitChangePercent = yesterdayActivities.length > 0
     ? Math.round(((todayActivities.length - yesterdayActivities.length) / yesterdayActivities.length) * 100)
     : 0;
 
@@ -34,51 +54,29 @@ export function ManagerDashboard() {
       label: 'Lượt truy cập hôm nay',
       value: todayActivities.length,
       change: visitChangePercent,
-      timeframe: 'vs hôm qua',
+      timeframe: 'so với hôm qua',
       icon: <Activity size={24} style={{ color: COLORS.WHITE }} />,
     },
     {
-      label: 'Tổng số bệnh nhân',
-      value: activeAccounts.filter(a => a.role === 'patient').length,
-      change: 12,
-      timeframe: 'vs tuần trước',
-      icon: <Users size={24} style={{ color: COLORS.WHITE }} />,
-    },
-    {
-      label: 'Ca khám',
+      label: 'Ca khám hôm nay',
       value: '42',
       change: 8,
-      timeframe: 'vs hôm nay',
+      timeframe: 'so với hôm qua',
       icon: <Stethoscope size={24} style={{ color: COLORS.WHITE }} />,
+    },
+    {
+      label: 'Bệnh nhân mới trong tuần',
+      value: '10',
+      change: 20,
+      timeframe: 'so với tuần trước',
+      icon: <Users size={24} style={{ color: COLORS.WHITE }} />,
     },
   ];
 
-  const getActivityColor = (action: string) => {
-    if (action.includes('Xóa')) return 'bg-[#d4183d]';
-    if (action.includes('Cập nhật')) return 'bg-[#52b788]';
-    if (action.includes('Tạo')) return 'bg-[#479AA8]';
-    return 'bg-[#f4a261]';
-  };
-
-  const getTimeAgo = (isoTime: string) => {
-    const now = new Date();
-    const time = new Date(isoTime);
-    const diffMs = now.getTime() - time.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-
-    if (diffMins < 1) return 'Vừa xong';
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} ngày trước`;
-  };
-
-  const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   return (
-    <div className="space-y-6">
+    <div className="h-full flex flex-col gap-6 overflow-hidden">
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-shrink-0">
         {kpiStats.map((stat) => (
           <KPICard
             key={stat.label}
@@ -91,80 +89,42 @@ export function ManagerDashboard() {
         ))}
       </div>
 
-      {/* Incomplete Profiles Modal */}
-      {showIncompleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: '#E5E7EB' }}>
-              <h3 className="text-lg font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
-                Tài khoản cần cập nhật
-              </h3>
-              <button
-                onClick={() => setShowIncompleteModal(false)}
-                className="p-1 hover:bg-gray-100 rounded transition"
-              >
-                <X size={20} style={{ color: COLORS.TEXT_SECONDARY }} />
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto flex-1 space-y-3">
-              {incompleteProfiles.length > 0 ? (
-                incompleteProfiles.map((profile) => (
-                  <div key={profile.id} className="p-4 rounded-3xl" style={{ backgroundColor: COLORS.GRAY }}>
-                    <p className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
-                      {profile.name}
-                    </p>
-                    <p className="text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
-                      {profile.email}
-                    </p>
-                    <p className="text-xs mt-2" style={{ color: COLORS.TEXT_SECONDARY }}>
-                      Role: {profile.role}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p style={{ color: COLORS.TEXT_SECONDARY }}>Không có tài khoản nào cần cập nhật</p>
-              )}
-            </div>
-            <div className="p-4 border-t text-right" style={{ borderColor: '#E5E7EB' }}>
-              <button
-                onClick={() => setShowIncompleteModal(false)}
-                className="px-4 py-2 rounded-lg font-medium text-white"
-                style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-              >
-                Đóng
-              </button>
-            </div>
+      {/* Age Statistics Chart */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        <div className="rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden" style={{ backgroundColor: COLORS.WHITE }}>
+          <div className="px-6 pt-6 flex-shrink-0">
+            <h2 className="font-semibold" style={{ color: '#1F4A51' }}>Thống kê theo độ tuổi</h2>
           </div>
-        </div>
-      )}
-
-      {/* Incomplete Profiles Badge */}
-      {incompleteProfiles.length > 0 && (
-        <NotificationBadge
-          count={incompleteProfiles.length}
-          onViewDetails={() => setShowIncompleteModal(true)}
-        />
-      )}
-
-      {/* Recent Activities */}
-      <div className="rounded-3xl p-6" style={{ backgroundColor: COLORS.WHITE }}>
-        <h3 className="text-lg font-semibold mb-6" style={{ color: COLORS.TEXT_PRIMARY }}>
-          Hoạt động gần đây
-        </h3>
-        <div className="space-y-3 max-h-96 overflow-y-auto">
-          {activities.slice(0, 10).map((activity, idx) => (
-            <div key={idx} className="flex items-start gap-3 p-4 rounded-3xl" style={{ backgroundColor: COLORS.GRAY }}>
-              <div className={`w-3 h-3 rounded-full mt-2 flex-shrink-0 ${getActivityColor(activity.action)}`}></div>
-              <div className="flex-1">
-                <p style={{ color: COLORS.TEXT_PRIMARY }} className="text-sm font-medium">
-                  {activity.action}
-                </p>
-                <p style={{ color: COLORS.TEXT_SECONDARY }} className="text-xs">
-                  {getTimeAgo(activity.time)}
-                </p>
+          <div className="px-6 pb-6 flex-1 flex flex-col min-h-0 gap-4">
+            <div className="flex items-center justify-between flex-shrink-0">
+              <div>
+                <p className="text-sm" style={{ color: '#6B7280' }}>Tổng số bệnh nhân</p>
+                <p className="text-4xl font-bold" style={{ color: '#479AA8' }}>387</p>
+              </div>
+              <div className="flex gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#E2E2E4' }}></div>
+                  <span className="text-sm" style={{ color: '#1F4A51' }}>Trẻ em</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#479AA8' }}></div>
+                  <span className="text-sm" style={{ color: '#1F4A51' }}>Người trưởng thành</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1F4A51' }}></div>
+                  <span className="text-sm" style={{ color: '#1F4A51' }}>Người già</span>
+                </div>
               </div>
             </div>
-          ))}
+            <div className="flex-1 min-h-0 w-full">
+              <ReactApexChart
+                options={{ ...appointmentChartOptions, chart: { ...appointmentChartOptions?.chart, redrawOnParentResize: true } }}
+                series={appointmentChartSeries}
+                type="bar"
+                height="100%"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

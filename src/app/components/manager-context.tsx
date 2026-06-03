@@ -40,6 +40,8 @@ interface ManagerContextType {
   deleteAccount: (id: number) => void;
   addActivity: (activity: Omit<Activity, 'time' | 'id'>) => void;
   getIncompleteProfiles: () => Account[];
+  pendingEditAccountId: number | null;
+  setPendingEditAccountId: (id: number | null) => void;
 }
 
 const ManagerContext = createContext<ManagerContextType | undefined>(undefined);
@@ -121,7 +123,7 @@ const initialAccounts: Account[] = [
   },
   {
     id: 6,
-    name: 'Dr. Trần Thị B',
+    name: 'BS. Trần Thị B',
     email: 'tranthib@phongkham.vn',
     phone: '0954321098',
     role: 'doctor',
@@ -159,7 +161,7 @@ const initialActivities: Activity[] = [
     id: '1',
     type: 'account',
     action: 'Tạo tài khoản mới',
-    detail: 'Tài khoản bác sĩ: Dr. Trần Thị B',
+    detail: 'Tài khoản bác sĩ: BS. Trần Thị B',
     time: new Date(Date.now() - 10 * 60000).toISOString()
   },
   {
@@ -201,14 +203,14 @@ const initialActivities: Activity[] = [
     id: '7',
     type: 'account',
     action: 'Cập nhật tài khoản',
-    detail: 'Cập nhật hồ sơ: Dr. Lê Thị Manager',
+    detail: 'Cập nhật hồ sơ: Lê Thị Manager',
     time: new Date(Date.now() - 5 * 86400000 - 10 * 3600000).toISOString()
   },
   {
     id: '8',
     type: 'account',
     action: 'Tạo tài khoản mới',
-    detail: 'Tài khoản bác sĩ: Dr. Phạm Văn F',
+    detail: 'Tài khoản bác sĩ: BS. Phạm Văn F',
     time: new Date(Date.now() - 6 * 86400000 - 14 * 3600000).toISOString()
   }
 ];
@@ -216,6 +218,7 @@ const initialActivities: Activity[] = [
 export function ManagerProvider({ children }: { children: ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
   const [activities, setActivities] = useState<Activity[]>(initialActivities);
+  const [pendingEditAccountId, setPendingEditAccountId] = useState<number | null>(null);
 
   const addActivity = (activity: Omit<Activity, 'time' | 'id'>) => {
     const newActivity: Activity = {
@@ -293,7 +296,9 @@ export function ManagerProvider({ children }: { children: ReactNode }) {
         updateAccount,
         deleteAccount,
         addActivity,
-        getIncompleteProfiles
+        getIncompleteProfiles,
+        pendingEditAccountId,
+        setPendingEditAccountId
       }}
     >
       {children}

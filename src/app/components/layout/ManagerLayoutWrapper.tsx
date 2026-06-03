@@ -1,10 +1,11 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import {
   LayoutDashboard,
   Users,
   CalendarDays,
   UserCircle,
   LogOut,
+  UserX,
 } from 'lucide-react';
 import { SharedLayout } from "./SharedLayout";
 import { RightSidebarCalendar } from "./RightSidebarCalendar";
@@ -24,8 +25,13 @@ export function ManagerLayoutWrapper({
   onNavigate,
   onLogout,
 }: ManagerLayoutWrapperProps) {
-  const { activities } = useManager();
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const { activities, getIncompleteProfiles, setPendingEditAccountId } = useManager();
+  const incompleteProfiles = getIncompleteProfiles();
+
+  const handleProfileClick = (profileId: number) => {
+    setPendingEditAccountId(profileId);
+    onNavigate('accounts');
+  };
 
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} />, onClick: () => onNavigate('dashboard') },
@@ -47,49 +53,57 @@ export function ManagerLayoutWrapper({
 
   const page = getPageTitle(currentPage);
 
-  // Right sidebar for dashboard with calendar
   const rightSidebar = currentPage === 'dashboard' ? (
-    <div className="space-y-6">
-      <RightSidebarCalendar
-  activities={activities.map(a => ({ ...a, id: Number(a.id) }))}
-  selectedDate={selectedDate}
-  onDateSelect={setSelectedDate}
-/>
-      
-      {selectedDate && (
-        <div>
-          <h3 className="font-semibold mb-4" style={{ color: COLORS.TEXT_PRIMARY }}>
-            Hoạt động ngày {selectedDate.toLocaleDateString('vi-VN')}
+    <div className="flex flex-col h-full gap-4 p-4">
+      {/* Calendar */}
+      <div className="flex-shrink-0 bg-white rounded-3xl px-4">
+        <RightSidebarCalendar
+          activities={activities.map(a => ({ ...a, id: Number(a.id) }))}
+        />
+      </div>
+
+      {/* Tài khoản cần cập nhật */}
+      <div className="flex-1 min-h-0 flex flex-col bg-white rounded-3xl p-4">
+        <div className="flex items-center gap-2 mb-3 flex-shrink-0">
+          <UserX size={16} style={{ color: COLORS.BUTTON_CHOSEN }} />
+          <h3 className="text-sm font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
+            Tài khoản cần cập nhật
           </h3>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {activities
-              .filter(a => new Date(a.time).toDateString() === selectedDate.toDateString())
-              .length > 0 ? (
-              activities
-                .filter(a => new Date(a.time).toDateString() === selectedDate.toDateString())
-                .map((activity) => (
-                  <div key={activity.id} className="p-3 rounded-lg" style={{ backgroundColor: COLORS.GRAY }}>
-                    <div className="flex items-start gap-3">
-                      <div className="w-3 h-3 rounded-full mt-2 bg-[#479AA8] flex-shrink-0"></div>
-                      <div>
-                        <p style={{ color: COLORS.TEXT_PRIMARY }} className="text-sm font-medium">
-                          {activity.action}
-                        </p>
-                        <p style={{ color: COLORS.TEXT_SECONDARY }} className="text-xs">
-                          {new Date(activity.time).toLocaleTimeString('vi-VN')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-            ) : (
-              <p style={{ color: COLORS.TEXT_SECONDARY }} className="text-sm text-center py-4">
-                Không có hoạt động
-              </p>
-            )}
-          </div>
+          {incompleteProfiles.length > 0 && (
+            <span
+              className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+              style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+            >
+              {incompleteProfiles.length}
+            </span>
+          )}
         </div>
-      )}
+
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-2">
+          {incompleteProfiles.length > 0 ? (
+            incompleteProfiles.map(profile => (
+              <div key={profile.id} className="p-3 rounded-2xl cursor-pointer hover:opacity-80 transition-opacity" style={{ backgroundColor: COLORS.GRAY }} onClick={() => handleProfileClick(profile.id)}>
+                <p className="text-sm font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
+                  {profile.name}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: COLORS.TEXT_SECONDARY }}>
+                  {profile.email}
+                </p>
+                <p className="text-xs mt-1 capitalize" style={{ color: COLORS.TEXT_SECONDARY }}>
+                  {profile.role}
+                </p>
+              </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full py-6 gap-2">
+              <UserX size={28} style={{ color: COLORS.TEXT_LIGHT }} />
+              <p className="text-xs text-center" style={{ color: COLORS.TEXT_SECONDARY }}>
+                Không có tài khoản nào cần cập nhật
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   ) : undefined;
 
