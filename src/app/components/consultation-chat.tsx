@@ -15,7 +15,7 @@ export function ConsultationChat({ consultationId, onBack }: ConsultationChatPro
 
   if (!consultation) {
     return (
-      <div className="p-8">
+      <div className="p-4">
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-[#6B7280] hover:text-[#1F4A51] mb-6"
@@ -74,7 +74,7 @@ export function ConsultationChat({ consultationId, onBack }: ConsultationChatPro
   };
 
   return (
-    <div className="p-8 flex flex-col h-full">
+    <div className="p-4 flex flex-col h-full">
       <div className="flex-shrink-0 mb-6">
         <div className="flex items-center justify-between">
           <button

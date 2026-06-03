@@ -286,14 +286,14 @@ export function AppointmentsManagement() {
                       </div>
                     </div>
 
-                    <div className="bg-[#F4FDFC] rounded-3xl p-4 mb-4">
+                    <div className="bg-[#F4FDFC] rounded-3xl p-4 mb-4 border border-1 border-[#479AA8]">
                       <p className="text-sm text-[#479AA8] mb-1 flex items-center gap-1">
                         <Paperclip className="w-4 h-4" />
                         Lý do khám:</p>
                       <p className="text-[#1F4A51] text-sm">{apt.reason}</p>
                     </div>
 
-                    <div className="bg-[#F4FDFC] rounded-3xl p-4 mb-4">
+                    <div className="bg-[#F4FDFC] rounded-3xl p-4 mb-4 border border-1 border-[#479AA8]">
                       <p className="text-sm text-[#479AA8] mb-1 flex items-center gap-1">
                         <Bot className="w-4 h-4" />
                         Tóm tắt AI:
