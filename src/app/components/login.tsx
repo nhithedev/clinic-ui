@@ -190,7 +190,7 @@ const [, setViewHistory] = useState<AuthView[]>([]);
       className="fixed inset-0 overflow-hidden bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: `url(${bg2})` }}
     >
-      <div className="h-full w-full flex items-center justify-center lg:justify-end px-4 sm:px-6 lg:pr-[16vw] lg:pl-8 py-4">
+      <div className="h-full w-full flex items-center justify-center px-4 sm:px-6 py-4">
         <div className="flex items-start gap-2">
           {view !== "patient-login" && <BackButton onClick={goBack} />}
           
