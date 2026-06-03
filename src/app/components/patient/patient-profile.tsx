@@ -3,7 +3,55 @@ import { toast } from 'sonner';
 import { COLORS } from '@/styles/colors';
 import { usePatient } from '../patient-context';
 
-type Tab = 'info' | 'edit';
+type Tab = 'info' | 'edit' | 'medical-history';
+
+interface MedicalVisitMock {
+  id: number;
+  date: string;
+  specialty: string;
+  doctorName: string;
+  diagnosis: string;
+  symptoms: string;
+  prescription: string[];
+  notes: string;
+  status: 'done' | 'follow-up';
+}
+
+const mockMedicalVisits: MedicalVisitMock[] = [
+  {
+    id: 1,
+    date: '2026-05-18',
+    specialty: 'Tai Mũi Họng',
+    doctorName: 'BS. Nguyễn Văn A',
+    diagnosis: 'Viêm họng cấp',
+    symptoms: 'Ho khan, đau họng, nghẹt mũi nhẹ trong 2 ngày',
+    prescription: ['Nước muối sinh lý xịt mũi', 'Thuốc giảm đau hạ sốt khi cần', 'Uống nhiều nước ấm'],
+    notes: 'Theo dõi thêm 3 ngày. Tái khám nếu sốt cao hoặc đau họng tăng.',
+    status: 'done',
+  },
+  {
+    id: 2,
+    date: '2026-04-02',
+    specialty: 'Nội khoa',
+    doctorName: 'BS. Trần Thị B',
+    diagnosis: 'Rối loạn tiêu hóa nhẹ',
+    symptoms: 'Đau bụng từng cơn sau ăn, đầy hơi',
+    prescription: ['Men vi sinh 5 ngày', 'Ăn mềm, tránh đồ cay nóng', 'Bù nước điện giải nếu tiêu chảy'],
+    notes: 'Không ghi nhận dấu hiệu cấp cứu. Hẹn tái khám nếu kéo dài quá 1 tuần.',
+    status: 'done',
+  },
+  {
+    id: 3,
+    date: '2026-03-10',
+    specialty: 'Tim mạch',
+    doctorName: 'ThS.BS. Lê Minh C',
+    diagnosis: 'Theo dõi hồi hộp, đánh trống ngực',
+    symptoms: 'Hồi hộp từng lúc, mệt khi thức khuya',
+    prescription: ['Theo dõi huyết áp tại nhà', 'Hạn chế cà phê', 'Ngủ đủ giấc'],
+    notes: 'Khuyến nghị đo điện tim nếu triệu chứng xuất hiện lại.',
+    status: 'follow-up',
+  },
+];
 
 const inputClassName =
   'w-full min-w-0 px-4 py-3 rounded-3xl border bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]';
@@ -58,7 +106,7 @@ export function PatientProfile() {
   return (
     <div className="h-full min-h-0 w-full px-2 md:px-6 flex flex-col gap-4 overflow-hidden">
       <div className="flex-shrink-0 flex gap-2 flex-wrap">
-        {(['info', 'edit'] as Tab[]).map((t) => (
+        {(['info', 'edit', 'medical-history'] as Tab[]).map((t) => (
           <button
             key={t}
             type="button"
@@ -72,6 +120,7 @@ export function PatientProfile() {
           >
             {t === 'info' && 'Thông tin'}
             {t === 'edit' && 'Chỉnh sửa'}
+            {t === 'medical-history' && 'Lịch sử khám bệnh'}
           </button>
         ))}
       </div>
@@ -184,6 +233,80 @@ export function PatientProfile() {
                   </p>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {tab === 'medical-history' && (
+          <div className="space-y-4">
+            <div className="rounded-3xl p-6" style={{ backgroundColor: COLORS.WHITE }}>
+              <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
+                Lịch sử khám bệnh
+              </h3>
+              <p className="text-sm mt-1" style={{ color: COLORS.TEXT_SECONDARY }}>
+                Tổng hợp các lần khám, chẩn đoán và ghi chú điều trị gần đây.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              {mockMedicalVisits.map((visit) => (
+                <div
+                  key={visit.id}
+                  className="min-w-0 rounded-3xl p-5 border space-y-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                  style={{ backgroundColor: COLORS.WHITE, borderColor: COLORS.BORDER }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold break-words" style={{ color: COLORS.TEXT_PRIMARY }}>
+                        {visit.diagnosis}
+                      </p>
+                      <p className="text-sm mt-1" style={{ color: COLORS.TEXT_SECONDARY }}>
+                        {new Date(visit.date).toLocaleDateString('vi-VN')} · {visit.specialty}
+                      </p>
+                    </div>
+
+                    <span
+                      className="shrink-0 px-3 py-1 rounded-3xl text-xs"
+                      style={{
+                        backgroundColor: visit.status === 'follow-up' ? COLORS.HOVER : COLORS.LIGHTER,
+                        color: COLORS.TEXT_PRIMARY,
+                      }}
+                    >
+                      {visit.status === 'follow-up' ? 'Cần theo dõi' : 'Đã khám'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <p className="break-words">
+                      <span style={{ color: COLORS.TEXT_SECONDARY }}>Bác sĩ: </span>
+                      <span style={{ color: COLORS.TEXT_PRIMARY }}>{visit.doctorName}</span>
+                    </p>
+
+                    <p className="break-words">
+                      <span style={{ color: COLORS.TEXT_SECONDARY }}>Triệu chứng: </span>
+                      <span style={{ color: COLORS.TEXT_PRIMARY }}>{visit.symptoms}</span>
+                    </p>
+
+                    <div>
+                      <p className="mb-1" style={{ color: COLORS.TEXT_SECONDARY }}>
+                        Chỉ định / thuốc:
+                      </p>
+                      <ul className="list-disc pl-5 space-y-1" style={{ color: COLORS.TEXT_PRIMARY }}>
+                        {visit.prescription.map((item) => (
+                          <li key={item} className="break-words">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <p className="break-words pt-2 border-t" style={{ borderColor: COLORS.BORDER }}>
+                      <span style={{ color: COLORS.TEXT_SECONDARY }}>Ghi chú: </span>
+                      <span style={{ color: COLORS.TEXT_PRIMARY }}>{visit.notes}</span>
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

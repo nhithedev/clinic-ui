@@ -1,12 +1,14 @@
 import { useMemo, useState, useEffect } from 'react';
 import {
   Bot,
+  Mic,
   Plus,
   Save,
   Send,
   Sparkles,
   Stethoscope,
   UserRound,
+  Volume2,
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -38,6 +40,12 @@ interface SymptomConsultationProps {
 }
 
 interface ConsultationForm {
+  name: string;
+  phone: string;
+  email: string;
+  gender: string;
+  address: string;
+  birthDate: string;
   symptoms: string;
   medicalHistory: string;
   extraInfo: string;
@@ -69,9 +77,6 @@ const inputClassName =
 const primaryButtonClassName =
   'rounded-3xl bg-[var(--color-button-chosen)] text-white text-sm transition-all duration-200 hover:bg-[var(--color-text-primary)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
 
-/*const iconButtonClassName =
-  'w-10 h-10 rounded-3xl bg-[var(--color-button-chosen)] text-white flex items-center justify-center shadow-sm transition-all duration-200 hover:bg-[var(--color-text-primary)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98]';
-*/
 const ghostButtonClassName =
   'rounded-3xl border text-sm transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 active:scale-[0.98]';
 
@@ -117,19 +122,39 @@ function assessLevel(text: string): ConsultationLevel {
 
 function buildAdvice(level: ConsultationLevel, symptoms: string, specialty: string) {
   if (level === 'urgent') {
-    return `Tình trạng này rất nguy hiểm, bạn nên đi khám ngay. Với mô tả "${symptoms}", hệ thống ưu tiên gợi ý chuyên khoa ${specialty}. Nếu có đau ngực dữ dội, khó thở, ngất, yếu liệt hoặc triệu chứng tăng nhanh, bạn nên đến cơ sở y tế gần nhất thay vì chờ theo dõi tại nhà.`;
+    return [
+      'Tình trạng này rất nguy hiểm, bạn nên đi khám ngay.',
+      '',
+      `Với mô tả "${symptoms}", hệ thống ưu tiên gợi ý chuyên khoa ${specialty}.`,
+      '',
+      'Nếu có đau ngực dữ dội, khó thở, ngất, yếu liệt hoặc triệu chứng tăng nhanh, bạn nên đến cơ sở y tế gần nhất thay vì chờ theo dõi tại nhà.',
+    ].join('\n');
   }
 
-  return `Tôi hiểu rồi. Triệu chứng "${symptoms}" có thể xuất phát từ nhiều nguyên nhân như thay đổi sinh hoạt, căng thẳng, nhiễm siêu vi, phản ứng viêm hoặc một vấn đề cần được bác sĩ kiểm tra kỹ hơn. Để giảm bớt tình trạng này, bạn có thể nghỉ ngơi, uống đủ nước, theo dõi nhiệt độ cơ thể, tránh tự ý dùng thuốc khi chưa rõ nguyên nhân và ghi lại thời điểm triệu chứng xuất hiện. Ngoài ra, đây có thể là dấu hiệu liên quan đến nhóm bệnh thuộc chuyên khoa ${specialty}. Bạn có thể đặt lịch khám tại phòng khám để được kiểm tra rõ hơn.`;
+  return [
+    `Tôi hiểu rồi. Triệu chứng "${symptoms}" có thể xuất phát từ nhiều nguyên nhân như thay đổi sinh hoạt, căng thẳng, nhiễm siêu vi, phản ứng viêm hoặc một vấn đề cần được bác sĩ kiểm tra kỹ hơn.`,
+    '',
+    'Để giảm bớt tình trạng này, bạn có thể nghỉ ngơi, uống đủ nước, theo dõi nhiệt độ cơ thể, tránh tự ý dùng thuốc khi chưa rõ nguyên nhân và ghi lại thời điểm triệu chứng xuất hiện.',
+    '',
+    `Ngoài ra, đây có thể là dấu hiệu liên quan đến nhóm bệnh thuộc chuyên khoa ${specialty}. Bạn có thể đặt lịch khám tại phòng khám để được kiểm tra rõ hơn.`,
+  ].join('\n');
 }
 
 function formatConsultationForm(form: ConsultationForm) {
   return [
+    'Thông tin bệnh nhân:',
+    `Họ tên: ${form.name}`,
+    `SĐT: ${form.phone}`,
+    `Email: ${form.email}`,
+    form.gender ? `Giới tính: ${form.gender}` : '',
+    form.birthDate ? `Ngày sinh: ${form.birthDate}` : '',
+    form.address ? `Địa chỉ: ${form.address}` : '',
+    '',
     `Triệu chứng: ${form.symptoms}`,
     form.medicalHistory ? `Tiền sử bệnh: ${form.medicalHistory}` : '',
     form.extraInfo ? `Thông tin bổ sung: ${form.extraInfo}` : '',
   ]
-    .filter(Boolean)
+    .filter((line) => line !== '')
     .join('\n');
 }
 
@@ -164,8 +189,16 @@ function getDoctorRating(index: number) {
   return ['4.9/5', '4.8/5', '4.7/5'][index % 3];
 }
 
-export function SymptomConsultation({ }: SymptomConsultationProps) {
+export function SymptomConsultation({}: SymptomConsultationProps) {
   const { profile, addAppointment, addConsultation, addDoctorConsultationRequest } = usePatient();
+
+  const patientProfile = profile as typeof profile & {
+    gender?: string;
+    address?: string;
+    birthDate?: string;
+    dob?: string;
+    dateOfBirth?: string;
+  };
 
   const [messages, setMessages] = useState<PatientChatMessage[]>([initialBotMessage]);
   const [input, setInput] = useState('');
@@ -178,8 +211,16 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
   const [selectedDoctorId, setSelectedDoctorId] = useState<number | null>(null);
   const [inputWasSuggested, setInputWasSuggested] = useState(false);
   const [suggestedFields, setSuggestedFields] = useState<Record<string, boolean>>({});
+  const [isRecording, setIsRecording] = useState(false);
+  const [speakingMessageIndex, setSpeakingMessageIndex] = useState<number | null>(null);
 
   const [consultForm, setConsultForm] = useState<ConsultationForm>({
+    name: profile.name,
+    phone: profile.phone,
+    email: profile.email,
+    gender: patientProfile.gender || '',
+    address: patientProfile.address || '',
+    birthDate: patientProfile.birthDate || patientProfile.dob || patientProfile.dateOfBirth || '',
     symptoms: '',
     medicalHistory: '',
     extraInfo: '',
@@ -204,7 +245,6 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
     return MOCK_DOCTORS.find((doctor) => doctor.id === selectedDoctorId) || null;
   }, [selectedDoctorId]);
 
-  // Listen for reset event from sidebar
   useEffect(() => {
     const handleReset = () => {
       setMessages([initialBotMessage]);
@@ -218,7 +258,15 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
       setSelectedDoctorId(null);
       setInputWasSuggested(false);
       setSuggestedFields({});
+      setIsRecording(false);
+      setSpeakingMessageIndex(null);
       setConsultForm({
+        name: profile.name,
+        phone: profile.phone,
+        email: profile.email,
+        gender: patientProfile.gender || '',
+        address: patientProfile.address || '',
+        birthDate: patientProfile.birthDate || patientProfile.dob || patientProfile.dateOfBirth || '',
         symptoms: '',
         medicalHistory: '',
         extraInfo: '',
@@ -235,7 +283,16 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
 
     window.addEventListener('reset-consultation', handleReset);
     return () => window.removeEventListener('reset-consultation', handleReset);
-  }, [profile.name, profile.phone, profile.email]);
+  }, [
+    profile.name,
+    profile.phone,
+    profile.email,
+    patientProfile.gender,
+    patientProfile.address,
+    patientProfile.birthDate,
+    patientProfile.dob,
+    patientProfile.dateOfBirth,
+  ]);
 
   const appendMessages = (...nextMessages: PatientChatMessage[]) => {
     setMessages((prev) => [...prev, ...nextMessages]);
@@ -274,32 +331,24 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
     backgroundColor: suggestedFields[field] ? COLORS.HOVER : COLORS.WHITE,
   });
 
- /* const resetConversation = () => {
-    setMessages([initialBotMessage]);
-    setInput('');
-    setMode('pre-chat');
-    setConsultIntent('general');
-    setSuggestedSpecialty('Nội khoa');
-    setNoMoreBookingPrompt(false);
-    setShowDoctorConfirm(false);
-    setIsTyping(false);
-    setSelectedDoctorId(null);
-    setInputWasSuggested(false);
-    setSuggestedFields({});
-    setConsultForm({
-      symptoms: '',
-      medicalHistory: '',
-      extraInfo: '',
-    });
-    setBookingForm({
-      name: profile.name,
-      phone: profile.phone,
-      email: profile.email,
-      specialty: 'Nội khoa',
-      slots: [{ date: '', time: '' }],
-      notes: '',
-    });
-  };*/
+  const toggleRecording = () => {
+    setIsRecording((prev) => !prev);
+
+    if (!isRecording) {
+      toast.info('Đang ghi âm');
+    } else {
+      toast.success('Đã dừng ghi âm');
+    }
+  };
+
+  const playBotMessage = (index: number) => {
+    setSpeakingMessageIndex(index);
+    toast.info('Đang phát nội dung tư vấn');
+
+    window.setTimeout(() => {
+      setSpeakingMessageIndex(null);
+    }, 1300);
+  };
 
   const startConsultation = (
     userBubble = 'Tôi cần tư vấn',
@@ -355,7 +404,11 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
       level === 'urgent'
         ? buildAdvice(level, text, specialty)
         : noMoreBookingPrompt
-          ? `Tôi hiểu rồi. Với mô tả "${text}", bạn nên theo dõi thêm các dấu hiệu đi kèm, nghỉ ngơi, uống đủ nước và đi khám nếu triệu chứng kéo dài hoặc nặng hơn.`
+          ? [
+              `Tôi hiểu rồi. Với mô tả "${text}", bạn nên theo dõi thêm các dấu hiệu đi kèm.`,
+              '',
+              'Bạn nên nghỉ ngơi, uống đủ nước và đi khám nếu triệu chứng kéo dài hoặc nặng hơn.',
+            ].join('\n')
           : buildAdvice(level, text, specialty);
 
     setInput('');
@@ -422,7 +475,17 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
     setMessages(savedMessages);
     setSuggestedSpecialty(specialty);
     setBookingForm((prev) => ({ ...prev, specialty }));
-    setConsultForm({ symptoms: '', medicalHistory: '', extraInfo: '' });
+    setConsultForm({
+      name: profile.name,
+      phone: profile.phone,
+      email: profile.email,
+      gender: patientProfile.gender || '',
+      address: patientProfile.address || '',
+      birthDate: patientProfile.birthDate || patientProfile.dob || patientProfile.dateOfBirth || '',
+      symptoms: '',
+      medicalHistory: '',
+      extraInfo: '',
+    });
     setSuggestedFields({});
     setConsultIntent('general');
     setMode(consultIntent === 'booking' ? 'booking-form' : 'post-advice');
@@ -488,7 +551,13 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
       userMessage,
       {
         role: 'bot',
-        content: `Dựa vào triệu chứng của bạn, tôi kết luận sơ bộ khoa phù hợp là ${bookingForm.specialty}. Hiện có những bác sĩ sau phù hợp: ${doctorNames}. Bạn hãy chọn bác sĩ muốn đặt lịch bên dưới.`,
+        content: [
+          `Dựa vào triệu chứng của bạn, tôi kết luận sơ bộ khoa phù hợp là ${bookingForm.specialty}.`,
+          '',
+          `Hiện có những bác sĩ sau phù hợp: ${doctorNames}.`,
+          '',
+          'Bạn hãy chọn bác sĩ muốn đặt lịch bên dưới.',
+        ].join('\n'),
       },
       () => setMode('doctor-selection'),
     );
@@ -507,7 +576,7 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
       },
       {
         role: 'bot',
-        content: `Bạn đã chọn ${doctor.name}. Bạn có muốn xác nhận đặt lịch khám với bác sĩ này không?`,
+        content: `Bạn đã chọn ${doctor.name}.\n\nBạn có muốn xác nhận đặt lịch khám với bác sĩ này không?`,
       },
     );
 
@@ -542,7 +611,13 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
       { role: 'user', content: 'Có, tôi xác nhận đặt lịch khám' },
       {
         role: 'bot',
-        content: `Hệ thống đã đặt lịch khám cho bạn. Mã hẹn ${code}. Vui lòng có mặt trước 15 phút, mang theo giấy tờ tùy thân và kết quả xét nghiệm nếu có. Lịch khám đã gửi đến bác sĩ, khi có phản hồi hệ thống sẽ gửi mail cho bạn. Bạn cần tư vấn thêm gì không?`,
+        content: [
+          `Hệ thống đã đặt lịch khám cho bạn. Mã hẹn ${code}.`,
+          '',
+          'Vui lòng có mặt trước 15 phút, mang theo giấy tờ tùy thân và kết quả xét nghiệm nếu có.',
+          '',
+          'Lịch khám đã gửi đến bác sĩ, khi có phản hồi hệ thống sẽ gửi mail cho bạn. Bạn cần tư vấn thêm gì không?',
+        ].join('\n'),
       },
     ];
 
@@ -576,7 +651,7 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
       { role: 'user', content: 'Hủy form đặt lịch' },
       {
         role: 'bot',
-        content: 'Tôi đã hủy form đặt lịch. Bạn có thể tiếp tục nhập nội dung cần tư vấn bất cứ lúc nào.',
+        content: 'Tôi đã hủy form đặt lịch.\n\nBạn có thể tiếp tục nhập nội dung cần tư vấn bất cứ lúc nào.',
       },
     );
 
@@ -668,7 +743,7 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
       {
         role: 'bot',
         content:
-          'Tôi đã gửi cuộc trò chuyện này cho bác sĩ. Bác sĩ sẽ xem xét và phản hồi trong mục Tư vấn bác sĩ sớm nhất.',
+          'Tôi đã gửi cuộc trò chuyện này cho bác sĩ.\n\nBác sĩ sẽ xem xét và phản hồi trong mục Tư vấn bác sĩ sớm nhất.',
       },
     ];
 
@@ -719,8 +794,6 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
   const renderSuggestionPills = () => {
     const suggestionsByMode: Partial<Record<ChatMode, string[]>> = {
       'post-advice': ['Đặt lịch khám', 'Tư vấn thêm', 'Gửi bác sĩ'],
-      'booking-confirm': ['Đổi bác sĩ', 'Đổi giờ khám'],
-      'booking-no-doctor': ['Đổi giờ khám', 'Gửi bác sĩ'],
     };
 
     const suggestions = suggestionsByMode[mode];
@@ -815,14 +888,35 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
           </div>
         )}
 
-        <div
-          className="max-w-[78%] px-5 py-4 rounded-3xl text-sm leading-6 whitespace-pre-line shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-          style={{
-            backgroundColor: isUser ? COLORS.BUTTON_CHOSEN : COLORS.WHITE,
-            color: isUser ? COLORS.WHITE : COLORS.TEXT_PRIMARY,
-          }}
-        >
-          {msg.content}
+        <div className="flex items-end gap-2 max-w-[78%] min-w-0">
+          <div
+            className="px-5 py-4 rounded-3xl text-sm leading-6 whitespace-pre-line break-words shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+            style={{
+              backgroundColor: isUser ? COLORS.BUTTON_CHOSEN : COLORS.WHITE,
+              color: isUser ? COLORS.WHITE : COLORS.TEXT_PRIMARY,
+            }}
+          >
+            {msg.content}
+          </div>
+
+          {!isUser && (
+            <button
+              type="button"
+              onClick={() => playBotMessage(index)}
+              className={`w-8 h-8 rounded-3xl flex items-center justify-center shrink-0 border transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 active:scale-[0.96] ${
+                speakingMessageIndex === index ? 'animate-pulse' : ''
+              }`}
+              style={{
+                borderColor: COLORS.BORDER,
+                color: speakingMessageIndex === index ? COLORS.BUTTON_CHOSEN : COLORS.TEXT_SECONDARY,
+                backgroundColor: speakingMessageIndex === index ? COLORS.HOVER : COLORS.WHITE,
+              }}
+              title="Nghe nội dung"
+              aria-label="Nghe nội dung"
+            >
+              <Volume2 size={15} />
+            </button>
+          )}
         </div>
 
         {isUser && (
@@ -963,7 +1057,10 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
         <div className="flex items-end gap-2">
           <div
             className="flex-1 flex gap-2 rounded-3xl p-1.5 border shadow-sm transition-all duration-200 focus-within:shadow-md"
-            style={{ borderColor: inputWasSuggested ? COLORS.BUTTON_CHOSEN : COLORS.BORDER, backgroundColor: COLORS.WHITE }}
+            style={{
+              borderColor: inputWasSuggested ? COLORS.BUTTON_CHOSEN : COLORS.BORDER,
+              backgroundColor: COLORS.WHITE,
+            }}
           >
             <input
               value={input}
@@ -979,6 +1076,24 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
                 backgroundColor: inputWasSuggested ? COLORS.HOVER : COLORS.WHITE,
               }}
             />
+
+            <button
+              type="button"
+              onClick={toggleRecording}
+              aria-label="Ghi âm"
+              title="Ghi âm"
+              className={`w-10 h-10 rounded-3xl border flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 active:scale-[0.96] ${
+                isRecording ? 'animate-pulse' : ''
+              }`}
+              style={{
+                borderColor: isRecording ? COLORS.BUTTON_CHOSEN : COLORS.BORDER,
+                color: isRecording ? COLORS.BUTTON_CHOSEN : COLORS.TEXT_SECONDARY,
+                backgroundColor: isRecording ? COLORS.HOVER : COLORS.WHITE,
+              }}
+            >
+              <Mic size={18} />
+            </button>
+
             <button
               type="button"
               onClick={handleSendFreeText}
@@ -1001,6 +1116,22 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
           </button>
         </div>
 
+        {isRecording && (
+          <div className="mt-2 flex items-center gap-2 px-2 text-xs animate-in fade-in slide-in-from-bottom-1 duration-200">
+            <span className="relative flex h-2.5 w-2.5">
+              <span
+                className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
+                style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+              />
+              <span
+                className="relative inline-flex h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+              />
+            </span>
+            <span style={{ color: COLORS.TEXT_SECONDARY }}>Đang ghi âm...</span>
+          </div>
+        )}
+
         <p className="mt-1.5 px-2 text-xs leading-5" style={{ color: COLORS.TEXT_SECONDARY }}>
           Trò chuyện sẽ tự lưu khi AI chẩn đoán, đặt lịch thành công và gửi tư vấn cho bác sĩ.
         </p>
@@ -1011,20 +1142,17 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
   return (
     <div className="relative h-full min-h-0 flex flex-col" style={{ backgroundColor: COLORS.GRAY }}>
       {mode !== 'pre-chat' && (
-        <>
-
-          <div className="absolute right-5 top-5 z-20">
-            <button
-              type="button"
-              onClick={openDoctorConfirm}
-              className="h-10 px-4 rounded-3xl bg-[var(--color-button-chosen)] text-white text-sm flex items-center gap-2 shadow-sm transition-all duration-200 hover:bg-[var(--color-text-primary)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
-              title="Gửi bác sĩ tư vấn"
-            >
-              <Stethoscope size={17} />
-              Gửi bác sĩ tư vấn
-            </button>
-          </div>
-        </>
+        <div className="absolute right-5 top-5 z-20">
+          <button
+            type="button"
+            onClick={openDoctorConfirm}
+            className="h-10 px-4 rounded-3xl bg-[var(--color-button-chosen)] text-white text-sm flex items-center gap-2 shadow-sm transition-all duration-200 hover:bg-[var(--color-text-primary)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+            title="Gửi bác sĩ tư vấn"
+          >
+            <Stethoscope size={17} />
+            Gửi bác sĩ tư vấn
+          </button>
+        </div>
       )}
 
       <div className={`flex-1 overflow-y-auto px-6 py-8 ${mode === 'pre-chat' ? 'pb-10' : 'pb-32'}`}>
@@ -1041,6 +1169,63 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
               className="rounded-3xl p-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300"
               style={{ backgroundColor: COLORS.WHITE }}
             >
+              <div>
+                <p className="text-sm font-medium mb-3" style={{ color: COLORS.TEXT_PRIMARY }}>
+                  Thông tin cá nhân
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <input
+                    value={consultForm.name}
+                    onChange={(e) => setConsultForm((prev) => ({ ...prev, name: e.target.value }))}
+                    className={inputClassName}
+                    style={fieldStyle('consultName')}
+                    placeholder="Họ tên"
+                  />
+
+                  <input
+                    value={consultForm.phone}
+                    onChange={(e) => setConsultForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    className={inputClassName}
+                    style={fieldStyle('consultPhone')}
+                    placeholder="Số điện thoại"
+                  />
+
+                  <input
+                    value={consultForm.email}
+                    onChange={(e) => setConsultForm((prev) => ({ ...prev, email: e.target.value }))}
+                    className={inputClassName}
+                    style={fieldStyle('consultEmail')}
+                    placeholder="Email"
+                  />
+
+                  <input
+                    value={consultForm.gender}
+                    onChange={(e) => setConsultForm((prev) => ({ ...prev, gender: e.target.value }))}
+                    className={inputClassName}
+                    style={fieldStyle('consultGender')}
+                    placeholder="Giới tính"
+                  />
+
+                  <input
+                    type="date"
+                    value={consultForm.birthDate}
+                    onChange={(e) => setConsultForm((prev) => ({ ...prev, birthDate: e.target.value }))}
+                    className={inputClassName}
+                    style={fieldStyle('consultBirthDate')}
+                    placeholder="Ngày sinh"
+                  />
+
+                  <input
+                    value={consultForm.address}
+                    onChange={(e) => setConsultForm((prev) => ({ ...prev, address: e.target.value }))}
+                    className={inputClassName}
+                    style={fieldStyle('consultAddress')}
+                    placeholder="Địa chỉ"
+                  />
+                </div>
+              </div>
+
               <div>
                 <textarea
                   value={consultForm.symptoms}
@@ -1400,6 +1585,8 @@ export function SymptomConsultation({ }: SymptomConsultationProps) {
         mode !== 'consult-form' &&
         mode !== 'booking-form' &&
         mode !== 'doctor-selection' &&
+        mode !== 'booking-confirm' &&
+        mode !== 'booking-no-doctor' &&
         renderChatInput()}
 
       {showDoctorConfirm && (
