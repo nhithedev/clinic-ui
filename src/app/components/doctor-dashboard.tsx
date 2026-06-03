@@ -1,6 +1,4 @@
-import ReactApexChart from "react-apexcharts";
-import type { ApexAxisChartSeries, ApexOptions } from "apexcharts";
-import { Clock, CheckCircle, MessageSquare } from "lucide-react";
+import { Clock, CheckCircle, MessageSquare, Calendar, ArrowRight } from "lucide-react";
 import { useData } from "./data-context";
 
 interface DoctorDashboardProps {
@@ -9,6 +7,10 @@ interface DoctorDashboardProps {
 
 export function DoctorDashboard({ onNavigate }: DoctorDashboardProps) {
   const { appointments, consultations } = useData();
+
+  const upcomingAppointments = appointments
+    .filter((apt) => apt.status === 'confirmed' && apt.date && apt.time)
+    .map((apt) => ({ time: apt.time!, patient: apt.patient.name, reason: apt.reason }));
 
   const pendingAppointments = appointments.filter(
     (apt) => apt.status === "pending",
@@ -44,77 +46,6 @@ export function DoctorDashboard({ onNavigate }: DoctorDashboardProps) {
     },
   ];
 
-  const appointmentChartSeries: ApexAxisChartSeries = [
-    {
-      name: "Trẻ em",
-      data: [44, 55, 57, 56, 61, 58, 63],
-    },
-    {
-      name: "Người trưởng thành",
-      data: [76, 85, 101, 98, 87, 105, 91],
-    },
-    {
-      name: "Người già",
-      data: [35, 41, 36, 26, 45, 48, 52],
-    },
-  ];
-
-  const appointmentChartOptions: ApexOptions = {
-    chart: {
-      type: "bar",
-      height: 350,
-      toolbar: { show: false },
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: "55%",
-        borderRadius: 5,
-        borderRadiusApplication: "end",
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: true,
-      width: 2,
-      colors: ["transparent"],
-    },
-    xaxis: {
-      categories: [
-        "Thứ 2",
-        "Thứ 3",
-        "Thứ 4",
-        "Thứ 5",
-        "Thứ 6",
-        "Thứ 7",
-        "Chủ nhật",
-      ],
-    },
-    yaxis: {
-      title: {
-        text: undefined,
-      },
-      tickAmount: 5,
-      forceNiceScale: true,
-    },
-    fill: {
-      opacity: 1,
-    },
-    colors: ["#E2E2E4", "#479AA8", "#1F4A51"],
-    tooltip: {
-      y: {
-        formatter: (val: number) => `${val} bệnh nhân`,
-      },
-    },
-    legend: {
-      show: false,
-    },
-    grid: {
-      borderColor: "#E5E7EB",
-    },
-  };
 
   return (
     <div className="flex flex-col gap-6 h-full">
@@ -150,98 +81,47 @@ export function DoctorDashboard({ onNavigate }: DoctorDashboardProps) {
         })}
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="bg-white rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden">
-          {/* Header của Chart - Giữ nguyên kích thước */}
-          <div className="p-6 flex-shrink-0">
-            <h2 className="font-semibold" style={{ color: "#1F4A51" }}>
-              Thống kê theo độ tuổi
-            </h2>
+      {/* Lịch hẹn sắp tới */}
+      <div className="bg-white rounded-3xl p-4 flex-1 min-h-0 flex flex-col">
+        <div className="flex items-center gap-2 mb-4 flex-shrink-0">
+          <div className="bg-[#F4FDFC] p-2 rounded-3xl">
+            <Calendar className="w-5 h-5 text-[#479AA8]" />
           </div>
-
-          {/* Body của Chart - Cho phép co giãn tự do nhưng giới hạn tối đa trong khung cha */}
-          <div className="px-6 pb-6 space-y-6 flex-1 flex flex-col min-h-0">
-            {/* Cụm thông tin tổng số bệnh nhân & chú thích - Giữ nguyên kích thước */}
-            <div className="flex items-center justify-between flex-shrink-0">
-              <div>
-                <p className="text-sm" style={{ color: "#6B7280" }}>
-                  Tổng số bệnh nhân
-                </p>
-                <p className="text-4xl font-bold" style={{ color: "#479AA8" }}>
-                  387
-                </p>
-              </div>
-              <div className="flex gap-6">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: "#E2E2E4" }}
-                  ></div>
-                  <span className="text-sm" style={{ color: "#1F4A51" }}>
-                    Trẻ em
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: "#479AA8" }}
-                  ></div>
-                  <span className="text-sm" style={{ color: "#1F4A51" }}>
-                    Người trưởng thành
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: "#1F4A51" }}
-                  ></div>
-                  <span className="text-sm" style={{ color: "#1F4A51" }}>
-                    Người già
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Vùng render Chart thực tế - Chiếm trọn không gian còn lại */}
-            <div className="flex-1 min-h-0 w-full relative">
-              <ReactApexChart
-                options={{
-                  ...appointmentChartOptions,
-                  // Đảm bảo chart tự động co giãn vừa khít 100% không gian vùng chứa của nó
-                  chart: {
-                    ...appointmentChartOptions?.chart,
-                    redrawOnParentResize: true,
-                  },
-                }}
-                series={appointmentChartSeries}
-                type="bar"
-                height="100%" // Thay đổi từ 350 cố định sang "100%" để responsive theo chiều dọc cha
-              />
-            </div>
-          </div>
+          <h3 className="font-semibold" style={{ color: "#1F4A51" }}>Lịch hẹn sắp tới</h3>
         </div>
 
-        {/* Completed Today */}
-        {/* <div className="bg-white rounded-3xl">
-          <div className="p-6">
-            <h2 style={{ color: '#1F4A51' }}>Đã khám hôm nay</h2>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {completedToday > 0 ? (
-                <div className="rounded-3xl bg-[#F4FDFC] p-4 border border-[#DEF1EF] flex items-center gap-3">
-                  <CheckCircle className="w-6 h-6 text-[#479AA8]" />
-                  <div>
-                    <p className="text-[#1F4A51] font-medium">{completedToday} ca đã hoàn thành hôm nay</p>
-                    <p className="text-sm text-[#6B7280]">Theo dõi số lượt khám đã xử lý trong ngày</p>
+        <div className="relative flex-1 min-h-0">
+          <div className="absolute inset-0 overflow-y-auto flex flex-col gap-3 pb-10">
+            {upcomingAppointments.length > 0 ? (
+              upcomingAppointments.map((apt, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-3xl bg-[#F5F5F7] border border-[#E5E7EB] flex-shrink-0 ">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm truncate" style={{ color: "#1F4A51" }}>{apt.patient}</p>
+                    <p className="text-xs line-clamp-1" style={{ color: "#6B7280" }}>{apt.reason}</p>
+                  </div>
+                  <div className="text-white px-3 py-2 rounded-3xl min-w-[72px] text-center bg-[#479AA8]">
+                    <div className="font-medium text-sm">{apt.time}</div>
                   </div>
                 </div>
-              ) : (
-                <p className="text-center py-8" style={{ color: '#6B7280' }}>Chưa có ca hoàn thành hôm nay</p>
-              )}
-            </div>
+              ))
+            ) : (
+              <p className="text-center py-4 text-sm" style={{ color: "#6B7280" }}>Chưa có lịch hẹn nào</p>
+            )}
           </div>
-        </div> */}
+          {upcomingAppointments.length > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+          )}
+        </div>
+
+        {upcomingAppointments.length > 0 && (
+          <button
+            onClick={() => onNavigate?.("appointments")}
+            className="text-sm flex items-center gap-1 transition-colors text-[#479AA8] hover:text-[#1F4A51] justify-end mt-3 flex-shrink-0"
+          >
+            Xem tất cả
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );
