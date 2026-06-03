@@ -48,16 +48,18 @@ export function AppointmentOverview() {
   };
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-4 p-2">
-      <div className="min-w-0">
-        <AppointmentBookingWizard
-  key={wizardKey}
-  onDone={() => setWizardKey((prev) => prev + 1)}
-  compact
-/>
+    <div className="h-full min-h-0 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-4 p-2">
+      <div className="min-w-0 flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-auto">
+          <AppointmentBookingWizard
+            key={wizardKey}
+            onDone={() => setWizardKey((prev) => prev + 1)}
+            compact
+          />
+        </div>
       </div>
 
-      <aside className="rounded-3xl p-4 space-y-4 xl:mt-10" style={{ backgroundColor: COLORS.WHITE }}>
+      <aside className="rounded-3xl p-4 space-y-4 xl:mt-10 h-full min-h-0 overflow-auto" style={{ backgroundColor: COLORS.WHITE }}>
         <div>
           <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
             Lịch hẹn của tôi
@@ -73,7 +75,7 @@ export function AppointmentOverview() {
               key={appointment.id}
               type="button"
               onClick={() => toggleAppointment(appointment)}
-              className="w-full text-left rounded-3xl p-4 border transition-colors"
+              className="w-full text-left rounded-3xl p-4 border transition-colors hover:bg-[var(--color-hover)]"
               style={{
                 borderColor:
                   expandedId === appointment.id ? COLORS.BUTTON_CHOSEN : COLORS.BORDER,
@@ -137,7 +139,7 @@ export function AppointmentOverview() {
                   <button
                     type="button"
                     onClick={() => openReschedule(selectedAppointment)}
-                    className="px-4 py-2 rounded-3xl text-white text-sm"
+                    className="px-4 py-2 rounded-3xl text-white text-sm transition-colors hover:opacity-90 hover:shadow-sm"
                     style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
                   >
                     Đổi lịch
@@ -145,7 +147,7 @@ export function AppointmentOverview() {
                   <button
                     type="button"
                     onClick={submitCancel}
-                    className="px-4 py-2 rounded-3xl text-white text-sm"
+                    className="px-4 py-2 rounded-3xl text-white text-sm transition-colors hover:opacity-90 hover:shadow-sm"
                     style={{ backgroundColor: COLORS.DESTRUCTIVE }}
                   >
                     Huỷ lịch
@@ -200,7 +202,7 @@ export function AppointmentOverview() {
                 <button
                   type="button"
                   onClick={submitReschedule}
-                  className="px-4 py-2 rounded-3xl text-white text-sm"
+                  className="px-4 py-2 rounded-3xl text-white text-sm transition-colors hover:opacity-90 hover:shadow-sm"
                   style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
                 >
                   Xác nhận đổi lịch

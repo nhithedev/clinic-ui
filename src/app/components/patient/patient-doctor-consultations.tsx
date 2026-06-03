@@ -75,62 +75,44 @@ export function PatientDoctorConsultations() {
   if (selected) {
     return (
       <div className="p-2 h-full min-h-0 flex flex-col">
-        <div className="flex-shrink-0 mb-4">
-          <button
-            type="button"
-            onClick={() => setSelectedId(null)}
-            className="flex items-center gap-2 text-sm mb-4"
-            style={{ color: COLORS.TEXT_SECONDARY }}
-          >
-            <ArrowLeft size={18} />
-            Quay lại danh sách
-          </button>
-
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
-                Tư vấn với {selected.doctor.name}
-              </h3>
-              <p className="text-sm mt-1" style={{ color: COLORS.TEXT_SECONDARY }}>
-                {selected.summary}
-              </p>
-            </div>
-
-            <span
-              className="px-3 py-1.5 rounded-full text-xs flex items-center gap-1 flex-shrink-0"
-              style={{
-                backgroundColor:
-                  selected.status === 'resolved' ? COLORS.LIGHTER : 'var(--color-warning-bg)',
-                color: COLORS.TEXT_PRIMARY,
-              }}
-            >
-              {selected.status === 'resolved' ? <CheckCircle size={14} /> : <Clock size={14} />}
-              {statusLabel(selected.status)}
-            </span>
-          </div>
-        </div>
-
         <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-4">
           <div
             className="rounded-3xl border flex flex-col min-h-0 overflow-hidden"
             style={{ backgroundColor: COLORS.WHITE, borderColor: COLORS.BORDER }}
           >
             <div className="p-4 border-b flex-shrink-0" style={{ borderColor: COLORS.BORDER }}>
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-3xl flex items-center justify-center"
-                  style={{ backgroundColor: COLORS.LIGHTER, color: COLORS.BUTTON_CHOSEN }}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(null)}
+                    className="p-2 rounded-full hover:bg-[var(--color-hover)] transition-colors flex-shrink-0"
+                    aria-label="Quay lại"
+                    style={{ color: COLORS.BUTTON_CHOSEN }}
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                  <div>
+                    <h4 className="font-medium" style={{ color: COLORS.TEXT_PRIMARY }}>
+                      {selected.doctor.name}
+                    </h4>
+                    <p className="text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
+                      {selected.doctor.specialty}
+                    </p>
+                  </div>
+                </div>
+
+                <span
+                  className="px-3 py-1.5 rounded-full text-xs flex items-center gap-1 flex-shrink-0"
+                  style={{
+                    backgroundColor:
+                      selected.status === 'resolved' ? COLORS.LIGHTER : 'var(--color-warning-bg)',
+                    color: COLORS.TEXT_PRIMARY,
+                  }}
                 >
-                  <Stethoscope size={20} />
-                </div>
-                <div>
-                  <h4 className="font-medium" style={{ color: COLORS.TEXT_PRIMARY }}>
-                    {selected.doctor.name}
-                  </h4>
-                  <p className="text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
-                    {selected.doctor.specialty}
-                  </p>
-                </div>
+                  {selected.status === 'resolved' ? <CheckCircle size={14} /> : <Clock size={14} />}
+                  {statusLabel(selected.status)}
+                </span>
               </div>
             </div>
 
@@ -290,10 +272,13 @@ export function PatientDoctorConsultations() {
 
   return (
     <div className="p-2">
-      <div className="rounded-3xl overflow-hidden" style={{ backgroundColor: COLORS.WHITE }}>
+      <div
+        className="rounded-3xl overflow-hidden border"
+        style={{ backgroundColor: COLORS.WHITE, borderColor: COLORS.BORDER }}
+      >
         <table className="w-full text-sm">
           <thead>
-            <tr style={{ backgroundColor: COLORS.GRAY }}>
+            <tr className="transition-colors" style={{ backgroundColor: COLORS.LIGHTER }}>
               <th className="text-left p-3" style={{ color: COLORS.TEXT_PRIMARY }}>
                 Nội dung
               </th>
@@ -313,7 +298,7 @@ export function PatientDoctorConsultations() {
             {sortedConsultations.map((consultation) => (
               <tr
                 key={consultation.id}
-                className="border-t cursor-pointer hover:opacity-90"
+                className="border-t cursor-pointer hover:bg-[var(--color-hover)] transition-colors"
                 style={{ borderColor: COLORS.BORDER }}
                 onClick={() => setSelectedId(consultation.id)}
               >

@@ -35,6 +35,11 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
   const [preVisitNotes, setPreVisitNotes] = useState('');
   const [skipPreVisit, setSkipPreVisit] = useState(false);
   const [appointmentCode, setAppointmentCode] = useState('');
+  const [suggestedFields, setSuggestedFields] = useState<Record<string, boolean>>({
+    symptoms: false,
+    medicalHistory: false,
+    extraInfo: false,
+  });
 
   useEffect(() => {
     if (bookingPrefill?.specialty) {
@@ -117,46 +122,132 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
           <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
             Chọn chuyên khoa (nếu không rõ, điền triệu chứng để được AI gợi ý)
           </h3>
-          <div className="rounded-3xl p-5 space-y-4" style={{ backgroundColor: COLORS.GRAY }}>
-            <textarea
-              value={consultForm.symptoms}
-              onChange={(e) => setConsultForm((prev) => ({ ...prev, symptoms: e.target.value }))}
-              className={inputClassName}
-              style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-              placeholder="Triệu chứng"
-              rows={3}
-            />
-            <input
-              value={consultForm.medicalHistory}
-              onChange={(e) => setConsultForm((prev) => ({ ...prev, medicalHistory: e.target.value }))}
-              className={inputClassName}
-              style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-              placeholder="Tiền sử bệnh"
-            />
-            <textarea
-              value={consultForm.extraInfo}
-              onChange={(e) => setConsultForm((prev) => ({ ...prev, extraInfo: e.target.value }))}
-              className={inputClassName}
-              style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-              placeholder="Thông tin bổ sung"
-              rows={3}
-            />
-            <button
-              type="button"
-              onClick={submitConsultForm}
-              className="px-6 py-3 rounded-3xl text-white text-sm"
-              style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-            >
-              Gợi ý chuyên khoa
+          <div
+            className="rounded-3xl p-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300"
+            style={{ backgroundColor: COLORS.GRAY }}
+          >
+            <div>
+              <textarea
+                value={consultForm.symptoms}
+                onChange={(e) => {
+                  setSuggestedFields((prev) => ({ ...prev, symptoms: false }));
+                  setConsultForm((prev) => ({ ...prev, symptoms: e.target.value }));
+                }}
+                className={inputClassName}
+                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: suggestedFields.symptoms ? COLORS.HOVER : COLORS.WHITE }}
+                placeholder="Mô tả triệu chứng chính, thời điểm bắt đầu và mức độ khó chịu"
+                rows={3}
+              />
+              <div className="mt-2 overflow-x-auto">
+                <div className="flex gap-2 whitespace-nowrap pb-1">
+                  {[
+                    'Đau đầu âm ỉ từ sáng nay',
+                    'Ho và đau họng khoảng 2 ngày',
+                    'Đau bụng từng cơn sau khi ăn',
+                    'Tức ngực nhẹ khi vận động',
+                  ].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        setConsultForm((prev) => ({ ...prev, symptoms: prev.symptoms ? `${prev.symptoms}\n${s}` : s }));
+                        setSuggestedFields((prev) => ({ ...prev, symptoms: true }));
+                      }}
+                      className="shrink-0 px-3 py-1.5 rounded-3xl border text-xs whitespace-nowrap transition-colors hover:bg-[var(--color-hover)]"
+                      style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_SECONDARY, backgroundColor: COLORS.WHITE }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <input
+                value={consultForm.medicalHistory}
+                onChange={(e) => {
+                  setSuggestedFields((prev) => ({ ...prev, medicalHistory: false }));
+                  setConsultForm((prev) => ({ ...prev, medicalHistory: e.target.value }));
+                }}
+                className={inputClassName}
+                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: suggestedFields.medicalHistory ? COLORS.HOVER : COLORS.WHITE }}
+                placeholder="Tiền sử bệnh, dị ứng thuốc hoặc bệnh đang điều trị"
+              />
+              <div className="mt-2 overflow-x-auto">
+                <div className="flex gap-2 whitespace-nowrap pb-1">
+                  {[
+                    'Không có tiền sử bệnh đáng chú ý',
+                    'Có tiền sử dị ứng thuốc',
+                    'Đang điều trị huyết áp',
+                    'Có bệnh nền cần lưu ý',
+                  ].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        setConsultForm((prev) => ({ ...prev, medicalHistory: s }));
+                        setSuggestedFields((prev) => ({ ...prev, medicalHistory: true }));
+                      }}
+                      className="shrink-0 px-3 py-1.5 rounded-3xl border text-xs whitespace-nowrap transition-colors hover:bg-[var(--color-hover)]"
+                      style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_SECONDARY, backgroundColor: COLORS.WHITE }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <textarea
+                value={consultForm.extraInfo}
+                onChange={(e) => {
+                  setSuggestedFields((prev) => ({ ...prev, extraInfo: false }));
+                  setConsultForm((prev) => ({ ...prev, extraInfo: e.target.value }));
+                }}
+                className={inputClassName}
+                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: suggestedFields.extraInfo ? COLORS.HOVER : COLORS.WHITE }}
+                placeholder="Thông tin bổ sung như thuốc đã dùng, nhiệt độ, kết quả đo gần đây"
+                rows={3}
+              />
+              <div className="mt-2 overflow-x-auto">
+                <div className="flex gap-2 whitespace-nowrap pb-1">
+                  {[
+                    'Tôi chưa dùng thuốc gì',
+                    'Tôi đã uống thuốc hạ sốt',
+                    'Triệu chứng nặng hơn vào buổi tối',
+                    'Tôi muốn được bác sĩ kiểm tra kỹ',
+                  ].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        setConsultForm((prev) => ({ ...prev, extraInfo: prev.extraInfo ? `${prev.extraInfo}\n${s}` : s }));
+                        setSuggestedFields((prev) => ({ ...prev, extraInfo: true }));
+                      }}
+                      className="shrink-0 px-3 py-1.5 rounded-3xl border text-xs whitespace-nowrap transition-colors hover:bg-[var(--color-hover)]"
+                      style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_SECONDARY, backgroundColor: COLORS.WHITE }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button type="button" onClick={submitConsultForm} className="px-6 py-3 rounded-3xl text-white transition-colors hover:opacity-90 hover:shadow-sm" style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}>
+              Gửi
             </button>
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {SPECIALTIES.map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => setSpecialty(s)}
-                className="px-4 py-3 rounded-3xl border-2 text-left text-sm"
+                className="px-4 py-3 rounded-3xl border-2 text-left text-sm transition-colors hover:bg-[var(--color-hover)]"
                 style={{
                   borderColor: specialty === s ? COLORS.BUTTON_CHOSEN : COLORS.BORDER,
                   backgroundColor: specialty === s ? COLORS.HOVER : COLORS.WHITE,
@@ -171,7 +262,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
             type="button"
             disabled={!specialty}
             onClick={() => setStep('doctor')}
-            className="flex items-center gap-2 px-6 py-3 rounded-3xl text-white disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-3 rounded-3xl text-white disabled:opacity-50 transition-colors hover:opacity-90 hover:shadow-sm"
             style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
           >
             Tiếp tục <ArrowRight size={18} />
@@ -190,7 +281,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
               key={d.id}
               type="button"
               onClick={() => setDoctorId(d.id)}
-              className="w-full p-4 rounded-3xl border-2 text-left"
+              className="w-full p-4 rounded-3xl border-2 text-left transition-colors hover:bg-[var(--color-hover)]"
               style={{
                 borderColor: doctorId === d.id ? COLORS.BUTTON_CHOSEN : COLORS.BORDER,
                 backgroundColor: doctorId === d.id ? COLORS.HOVER : COLORS.GRAY,
@@ -208,7 +299,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
             type="button"
             disabled={!doctorId}
             onClick={() => setStep('datetime')}
-            className="px-6 py-3 rounded-3xl text-white disabled:opacity-50"
+            className="px-6 py-3 rounded-3xl text-white disabled:opacity-50 transition-colors hover:opacity-90 hover:shadow-sm"
             style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
           >
             Tiếp tục
@@ -236,7 +327,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
                 key={t}
                 type="button"
                 onClick={() => setTime(t)}
-                className="px-4 py-2 rounded-3xl border-2 text-sm"
+                className="px-4 py-2 rounded-3xl border-2 text-sm transition-colors hover:bg-[var(--color-hover)]"
                 style={{
                   borderColor: time === t ? COLORS.BUTTON_CHOSEN : COLORS.BORDER,
                   backgroundColor: time === t ? COLORS.BUTTON_CHOSEN : COLORS.WHITE,
@@ -251,7 +342,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
             type="button"
             disabled={!date || !time}
             onClick={() => setStep('previsit')}
-            className="px-6 py-3 rounded-3xl text-white disabled:opacity-50"
+            className="px-6 py-3 rounded-3xl text-white disabled:opacity-50 transition-colors hover:opacity-90 hover:shadow-sm"
             style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
           >
             Tiếp tục
@@ -275,7 +366,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
                 placeholder="Tiền sử, thuốc đang dùng..."
               />
               <label
-                className="flex items-center justify-center rounded-3xl border border-dashed px-4 py-4 text-sm cursor-pointer"
+                className="flex items-center justify-center rounded-3xl border border-dashed px-4 py-4 text-sm cursor-pointer transition-colors hover:bg-[var(--color-hover)]"
                 style={{ borderColor: COLORS.BUTTON_CHOSEN, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.HOVER }}
               >
                 <input type="file" className="sr-only" />
@@ -286,7 +377,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
           <button
             type="button"
             onClick={() => setSkipPreVisit(!skipPreVisit)}
-            className="text-sm underline"
+            className="text-sm underline transition-colors hover:text-[var(--color-button-chosen)]"
             style={{ color: COLORS.BUTTON_CHOSEN }}
           >
             {skipPreVisit ? 'Điền phiếu khám' : 'Bỏ qua bước này'}
@@ -294,7 +385,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
           <button
             type="button"
             onClick={() => setStep('confirm')}
-            className="px-6 py-3 rounded-3xl text-white"
+            className="px-6 py-3 rounded-3xl text-white transition-colors hover:opacity-90 hover:shadow-sm"
             style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
           >
             Xem tóm tắt
@@ -327,7 +418,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
           <button
             type="button"
             onClick={confirmBooking}
-            className="flex items-center gap-2 px-6 py-3 rounded-3xl text-white"
+            className="flex items-center gap-2 px-6 py-3 rounded-3xl text-white transition-colors hover:opacity-90 hover:shadow-sm"
             style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
           >
             <Check size={18} /> Xác nhận
@@ -348,7 +439,7 @@ export function AppointmentBookingWizard({ onDone, compact = false }: Appointmen
           <button
             type="button"
             onClick={onDone}
-            className="px-6 py-3 rounded-3xl text-white"
+            className="px-6 py-3 rounded-3xl text-white transition-colors hover:opacity-90 hover:shadow-sm"
             style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
           >
             Hoàn tất

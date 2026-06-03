@@ -1,5 +1,14 @@
-import { useMemo, useState } from 'react';
-import { Plus, Save, Send, Stethoscope, X } from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
+import {
+  Bot,
+  Plus,
+  Save,
+  Send,
+  Sparkles,
+  Stethoscope,
+  UserRound,
+  X,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { COLORS } from '@/styles/colors';
 import {
@@ -18,10 +27,15 @@ type ChatMode =
   | 'post-advice'
   | 'free-chat'
   | 'booking-form'
+  | 'doctor-selection'
   | 'booking-confirm'
   | 'booking-no-doctor';
 
 type ConsultationIntent = 'general' | 'booking';
+
+interface SymptomConsultationProps {
+  onNavigate?: (page: string) => void;
+}
 
 interface ConsultationForm {
   symptoms: string;
@@ -46,18 +60,32 @@ interface BookingForm {
 const initialBotMessage: PatientChatMessage = {
   role: 'bot',
   content:
-    'Xin chào, tôi là trợ lý tư vấn sức khỏe của phòng khám. Bạn có thể mô tả triệu chứng như đang chat với bác sĩ, hoặc chọn nhanh nhu cầu bên dưới.',
+    'Xin chào, tôi là trợ lý tư vấn sức khỏe của phòng khám. Bạn có thể chọn nhanh nhu cầu bên dưới để bắt đầu.',
 };
 
 const inputClassName =
-  'w-full px-4 py-3 rounded-3xl border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]';
+  'w-full px-4 py-2.5 rounded-3xl border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)] hover:border-[var(--color-button-chosen)]';
+
+const primaryButtonClassName =
+  'rounded-3xl bg-[var(--color-button-chosen)] text-white text-sm transition-all duration-200 hover:bg-[var(--color-text-primary)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
+
+/*const iconButtonClassName =
+  'w-10 h-10 rounded-3xl bg-[var(--color-button-chosen)] text-white flex items-center justify-center shadow-sm transition-all duration-200 hover:bg-[var(--color-text-primary)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98]';
+*/
+const ghostButtonClassName =
+  'rounded-3xl border text-sm transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 active:scale-[0.98]';
+
+const suggestionButtonClassName =
+  'shrink-0 px-3 py-1.5 rounded-3xl border text-xs whitespace-nowrap transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]';
 
 function suggestSpecialty(text: string) {
   const lower = text.toLowerCase();
+
   if (lower.includes('ngực') || lower.includes('tim') || lower.includes('khó thở')) return 'Tim mạch';
   if (lower.includes('da') || lower.includes('ngứa') || lower.includes('mẩn')) return 'Da liễu';
   if (lower.includes('tai') || lower.includes('mũi') || lower.includes('họng')) return 'Tai Mũi Họng';
   if (lower.includes('trẻ') || lower.includes('bé') || lower.includes('con tôi')) return 'Nhi khoa';
+
   return 'Nội khoa';
 }
 
@@ -122,7 +150,21 @@ function formatBookingForm(form: BookingForm) {
     .join('\n');
 }
 
-export function SymptomConsultation() {
+function getDoctorExperience(index: number) {
+  return [12, 9, 15, 8, 18, 7][index % 6];
+}
+
+function getDoctorTitle(index: number) {
+  return ['Thạc sĩ, Bác sĩ chuyên khoa I', 'Bác sĩ chuyên khoa II', 'Tiến sĩ, Bác sĩ trưởng khoa'][
+    index % 3
+  ];
+}
+
+function getDoctorRating(index: number) {
+  return ['4.9/5', '4.8/5', '4.7/5'][index % 3];
+}
+
+export function SymptomConsultation({ }: SymptomConsultationProps) {
   const { profile, addAppointment, addConsultation, addDoctorConsultationRequest } = usePatient();
 
   const [messages, setMessages] = useState<PatientChatMessage[]>([initialBotMessage]);
@@ -132,6 +174,10 @@ export function SymptomConsultation() {
   const [suggestedSpecialty, setSuggestedSpecialty] = useState('Nội khoa');
   const [noMoreBookingPrompt, setNoMoreBookingPrompt] = useState(false);
   const [showDoctorConfirm, setShowDoctorConfirm] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<number | null>(null);
+  const [inputWasSuggested, setInputWasSuggested] = useState(false);
+  const [suggestedFields, setSuggestedFields] = useState<Record<string, boolean>>({});
 
   const [consultForm, setConsultForm] = useState<ConsultationForm>({
     symptoms: '',
@@ -148,14 +194,112 @@ export function SymptomConsultation() {
     notes: '',
   });
 
-  const selectedDoctor = useMemo(() => {
-    const doctors = MOCK_DOCTORS.filter((doctor) => doctor.specialty === bookingForm.specialty);
-    return doctors[0] || MOCK_DOCTORS[0];
+  const availableDoctors = useMemo(() => {
+    const matched = MOCK_DOCTORS.filter((doctor) => doctor.specialty === bookingForm.specialty);
+    return matched.length > 0 ? matched : MOCK_DOCTORS;
   }, [bookingForm.specialty]);
+
+  const selectedDoctor = useMemo(() => {
+    if (selectedDoctorId === null) return null;
+    return MOCK_DOCTORS.find((doctor) => doctor.id === selectedDoctorId) || null;
+  }, [selectedDoctorId]);
+
+  // Listen for reset event from sidebar
+  useEffect(() => {
+    const handleReset = () => {
+      setMessages([initialBotMessage]);
+      setInput('');
+      setMode('pre-chat');
+      setConsultIntent('general');
+      setSuggestedSpecialty('Nội khoa');
+      setNoMoreBookingPrompt(false);
+      setShowDoctorConfirm(false);
+      setIsTyping(false);
+      setSelectedDoctorId(null);
+      setInputWasSuggested(false);
+      setSuggestedFields({});
+      setConsultForm({
+        symptoms: '',
+        medicalHistory: '',
+        extraInfo: '',
+      });
+      setBookingForm({
+        name: profile.name,
+        phone: profile.phone,
+        email: profile.email,
+        specialty: 'Nội khoa',
+        slots: [{ date: '', time: '' }],
+        notes: '',
+      });
+    };
+
+    window.addEventListener('reset-consultation', handleReset);
+    return () => window.removeEventListener('reset-consultation', handleReset);
+  }, [profile.name, profile.phone, profile.email]);
 
   const appendMessages = (...nextMessages: PatientChatMessage[]) => {
     setMessages((prev) => [...prev, ...nextMessages]);
   };
+
+  const appendBotWithTyping = (botMessage: PatientChatMessage, afterReply?: () => void) => {
+    setIsTyping(true);
+
+    window.setTimeout(() => {
+      setMessages((prev) => [...prev, botMessage]);
+      setIsTyping(false);
+      afterReply?.();
+    }, 650);
+  };
+
+  const appendUserThenBot = (
+    userMessage: PatientChatMessage,
+    botMessage: PatientChatMessage,
+    afterReply?: () => void,
+  ) => {
+    setMessages((prev) => [...prev, userMessage]);
+    appendBotWithTyping(botMessage, afterReply);
+  };
+
+  const markFieldSuggested = (field: string) => {
+    setSuggestedFields((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const clearFieldSuggested = (field: string) => {
+    setSuggestedFields((prev) => ({ ...prev, [field]: false }));
+  };
+
+  const fieldStyle = (field: string) => ({
+    borderColor: suggestedFields[field] ? COLORS.BUTTON_CHOSEN : COLORS.BORDER,
+    color: COLORS.TEXT_PRIMARY,
+    backgroundColor: suggestedFields[field] ? COLORS.HOVER : COLORS.WHITE,
+  });
+
+ /* const resetConversation = () => {
+    setMessages([initialBotMessage]);
+    setInput('');
+    setMode('pre-chat');
+    setConsultIntent('general');
+    setSuggestedSpecialty('Nội khoa');
+    setNoMoreBookingPrompt(false);
+    setShowDoctorConfirm(false);
+    setIsTyping(false);
+    setSelectedDoctorId(null);
+    setInputWasSuggested(false);
+    setSuggestedFields({});
+    setConsultForm({
+      symptoms: '',
+      medicalHistory: '',
+      extraInfo: '',
+    });
+    setBookingForm({
+      name: profile.name,
+      phone: profile.phone,
+      email: profile.email,
+      specialty: 'Nội khoa',
+      slots: [{ date: '', time: '' }],
+      notes: '',
+    });
+  };*/
 
   const startConsultation = (
     userBubble = 'Tôi cần tư vấn',
@@ -164,51 +308,46 @@ export function SymptomConsultation() {
   ) => {
     const nextSymptoms = seedSymptoms.trim();
 
-    const nextMessages: PatientChatMessage[] = [
+    setConsultForm((prev) => ({ ...prev, symptoms: nextSymptoms }));
+    setConsultIntent(intent);
+    setInput('');
+    setInputWasSuggested(false);
+    setNoMoreBookingPrompt(false);
+    setMode('consult-form');
+
+    appendUserThenBot(
       { role: 'user', content: userBubble },
       {
         role: 'bot',
         content:
           'Tôi đã hiểu, bạn có thể chia sẻ thêm về triệu chứng chính, tiền sử bệnh và thông tin bổ sung để tôi nắm rõ hơn được không?',
       },
-    ];
-
-    setConsultForm((prev) => ({ ...prev, symptoms: nextSymptoms }));
-    setConsultIntent(intent);
-    appendMessages(...nextMessages);
-    setInput('');
-    setNoMoreBookingPrompt(false);
-    setMode('consult-form');
+    );
   };
 
   const startBooking = (specialty = suggestedSpecialty, userBubble = 'Tôi cần đặt lịch khám bệnh') => {
     setSuggestedSpecialty(specialty);
+    setSelectedDoctorId(null);
     setBookingForm((prev) => ({
       ...prev,
       specialty,
       slots: prev.slots.length > 0 ? prev.slots : [{ date: '', time: '' }],
     }));
 
-    appendMessages(
+    appendUserThenBot(
       { role: 'user', content: userBubble },
       {
         role: 'bot',
         content: `Tôi đã hiểu. Với tình trạng của bạn, tôi thấy nên đến gặp bác sĩ về ${specialty}. Bạn có thể cung cấp thêm thông tin vào form dưới đây để được hỗ trợ đặt lịch.`,
       },
+      () => setMode('booking-form'),
     );
-
-    setMode('booking-form');
   };
 
   const handleSendFreeText = () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isTyping) return;
 
     const text = input.trim();
-
-    if (mode === 'pre-chat') {
-      startConsultation('Tôi cần tư vấn', text, 'general');
-      return;
-    }
 
     const level = assessLevel(text);
     const specialty = suggestSpecialty(text);
@@ -220,45 +359,45 @@ export function SymptomConsultation() {
           : buildAdvice(level, text, specialty);
 
     setInput('');
+    setInputWasSuggested(false);
     setSuggestedSpecialty(specialty);
+    setBookingForm((prev) => ({ ...prev, specialty }));
 
-    appendMessages(
+    appendUserThenBot(
       { role: 'user', content: text },
       { role: 'bot', content: botMessage },
+      () => {
+        if (level === 'urgent' || !noMoreBookingPrompt) {
+          setMode('post-advice');
+        } else {
+          setMode('free-chat');
+        }
+      },
     );
-
-    if (level === 'urgent' || !noMoreBookingPrompt) {
-      setMode('post-advice');
-    } else {
-      setMode('free-chat');
-    }
   };
-const autoSaveConversation = (
-  savedMessages: PatientChatMessage[],
-  summary: string,
-  level: ConsultationLevel,
-) => {
-  addConsultation({
-    date: new Date().toISOString(),
-    summary: summary.slice(0, 120) || 'Cuộc trò chuyện tư vấn sức khỏe',
-    level,
-    messages: savedMessages,
-  });
 
-  toast.success('Đã lưu vào lịch sử trò chuyện');
-};
+  const autoSaveConversation = (
+    savedMessages: PatientChatMessage[],
+    summary: string,
+    level: ConsultationLevel,
+  ) => {
+    addConsultation({
+      date: new Date().toISOString(),
+      summary: summary.slice(0, 120) || 'Cuộc trò chuyện tư vấn sức khỏe',
+      level,
+      messages: savedMessages,
+    });
+
+    toast.success('Đã lưu vào lịch sử trò chuyện');
+  };
+
   const submitConsultForm = () => {
     if (!consultForm.symptoms.trim()) {
       toast.error('Vui lòng nhập triệu chứng');
       return;
     }
 
-    const combined = [
-      consultForm.symptoms,
-      consultForm.medicalHistory,
-      consultForm.extraInfo,
-    ].join(' ');
-
+    const combined = [consultForm.symptoms, consultForm.medicalHistory, consultForm.extraInfo].join(' ');
     const level = assessLevel(combined);
     const specialty = suggestSpecialty(combined);
     const advice = buildAdvice(level, consultForm.symptoms, specialty);
@@ -284,6 +423,7 @@ const autoSaveConversation = (
     setSuggestedSpecialty(specialty);
     setBookingForm((prev) => ({ ...prev, specialty }));
     setConsultForm({ symptoms: '', medicalHistory: '', extraInfo: '' });
+    setSuggestedFields({});
     setConsultIntent('general');
     setMode(consultIntent === 'booking' ? 'booking-form' : 'post-advice');
   };
@@ -330,26 +470,60 @@ const autoSaveConversation = (
     };
 
     if (!hasDoctor) {
-      appendMessages(userMessage, {
-        role: 'bot',
-        content:
-          'Với lịch trình của bạn, hệ thống chưa sắp xếp được bác sĩ. Bạn có muốn đổi ca không?',
-      });
-      setMode('booking-no-doctor');
+      appendUserThenBot(
+        userMessage,
+        {
+          role: 'bot',
+          content:
+            'Với lịch trình của bạn, hệ thống chưa tìm được bác sĩ phù hợp trong khung giờ này. Bạn có muốn đổi ca không?',
+        },
+        () => setMode('booking-no-doctor'),
+      );
       return;
     }
 
-    appendMessages(userMessage, {
-      role: 'bot',
-      content: `Với lịch trình của bạn, hệ thống đã sắp xếp được bác sĩ ${selectedDoctor.name}. Bạn có muốn đặt lịch khám không?`,
-    });
+    const doctorNames = availableDoctors.map((doctor) => doctor.name).join(', ');
+
+    appendUserThenBot(
+      userMessage,
+      {
+        role: 'bot',
+        content: `Dựa vào triệu chứng của bạn, tôi kết luận sơ bộ khoa phù hợp là ${bookingForm.specialty}. Hiện có những bác sĩ sau phù hợp: ${doctorNames}. Bạn hãy chọn bác sĩ muốn đặt lịch bên dưới.`,
+      },
+      () => setMode('doctor-selection'),
+    );
+  };
+
+  const selectDoctorForBooking = (doctorId: number) => {
+    const doctor = MOCK_DOCTORS.find((item) => item.id === doctorId);
+    if (!doctor) return;
+
+    setSelectedDoctorId(doctorId);
+
+    appendMessages(
+      {
+        role: 'user',
+        content: `Tôi chọn ${doctor.name}`,
+      },
+      {
+        role: 'bot',
+        content: `Bạn đã chọn ${doctor.name}. Bạn có muốn xác nhận đặt lịch khám với bác sĩ này không?`,
+      },
+    );
 
     setMode('booking-confirm');
   };
 
   const confirmBooking = () => {
     const validSlot = bookingForm.slots.find((slot) => slot.date && slot.time);
+
     if (!validSlot) return;
+
+    if (!selectedDoctor) {
+      toast.error('Vui lòng chọn bác sĩ trước khi xác nhận đặt lịch');
+      setMode('doctor-selection');
+      return;
+    }
 
     const { code } = addAppointment({
       specialty: bookingForm.specialty,
@@ -365,22 +539,22 @@ const autoSaveConversation = (
     });
 
     const bookingSuccessMessages: PatientChatMessage[] = [
-  { role: 'user', content: 'Có, tôi xác nhận đặt lịch khám' },
-  {
-    role: 'bot',
-    content: `Hệ thống đã đặt lịch khám cho bạn. Mã hẹn ${code}. Vui lòng có mặt trước 15 phút, mang theo giấy tờ tùy thân và kết quả xét nghiệm nếu có. Lịch khám đã gửi đến bác sĩ, khi có phản hồi hệ thống sẽ gửi mail cho bạn. Bạn cần tư vấn thêm gì không?`,
-  },
-];
+      { role: 'user', content: 'Có, tôi xác nhận đặt lịch khám' },
+      {
+        role: 'bot',
+        content: `Hệ thống đã đặt lịch khám cho bạn. Mã hẹn ${code}. Vui lòng có mặt trước 15 phút, mang theo giấy tờ tùy thân và kết quả xét nghiệm nếu có. Lịch khám đã gửi đến bác sĩ, khi có phản hồi hệ thống sẽ gửi mail cho bạn. Bạn cần tư vấn thêm gì không?`,
+      },
+    ];
 
-const savedMessages = [...messages, ...bookingSuccessMessages];
+    const savedMessages = [...messages, ...bookingSuccessMessages];
 
-setMessages(savedMessages);
+    setMessages(savedMessages);
 
-autoSaveConversation(
-  savedMessages,
-  `Đặt lịch khám thành công: ${bookingForm.specialty} với ${selectedDoctor.name}`,
-  assessLevel(savedMessages.map((message) => message.content).join(' ')),
-);
+    autoSaveConversation(
+      savedMessages,
+      `Đặt lịch khám thành công: ${bookingForm.specialty} với ${selectedDoctor.name}`,
+      assessLevel(savedMessages.map((message) => message.content).join(' ')),
+    );
 
     setBookingForm({
       name: profile.name,
@@ -391,6 +565,8 @@ autoSaveConversation(
       notes: '',
     });
 
+    setSelectedDoctorId(null);
+    setSuggestedFields({});
     setNoMoreBookingPrompt(false);
     setMode('free-chat');
   };
@@ -404,10 +580,11 @@ autoSaveConversation(
       },
     );
 
+    setSelectedDoctorId(null);
     setMode('free-chat');
   };
 
-  const handleChoice = (choice: 'book' | 'more' | 'no') => {
+  const handleChoice = (choice: 'book' | 'more' | 'doctor' | 'no') => {
     if (choice === 'book') {
       startBooking(suggestedSpecialty, 'Có, đặt lịch khám');
       return;
@@ -415,6 +592,11 @@ autoSaveConversation(
 
     if (choice === 'more') {
       startConsultation('Muốn tư vấn thêm', '', 'general');
+      return;
+    }
+
+    if (choice === 'doctor') {
+      openDoctorConfirm();
       return;
     }
 
@@ -429,31 +611,6 @@ autoSaveConversation(
     setNoMoreBookingPrompt(true);
     setMode('quick-actions');
   };
-
-  const renderQuickActionButtons = () => (
-    <div className="flex flex-wrap justify-center gap-3 pt-2">
-      <button
-        type="button"
-        onClick={() => startConsultation('Tôi cần đặt lịch khám bệnh', '', 'booking')}
-        className="px-5 py-3 rounded-3xl text-sm text-white"
-        style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-      >
-        Tôi cần đặt lịch khám bệnh
-      </button>
-      <button
-        type="button"
-        onClick={() => startConsultation('Tôi cần tư vấn', '', 'general')}
-        className="px-5 py-3 rounded-3xl border text-sm"
-        style={{
-          borderColor: COLORS.BORDER,
-          color: COLORS.TEXT_PRIMARY,
-          backgroundColor: COLORS.WHITE,
-        }}
-      >
-        Tôi cần tư vấn
-      </button>
-    </div>
-  );
 
   const saveCurrentConversation = () => {
     const userMessages = messages.filter((message) => message.role === 'user');
@@ -508,51 +665,328 @@ autoSaveConversation(
     });
 
     const doctorSentMessages: PatientChatMessage[] = [
-  {
-    role: 'bot',
-    content:
-      'Tôi đã gửi cuộc trò chuyện này cho bác sĩ. Bác sĩ sẽ xem xét và phản hồi trong mục Tư vấn bác sĩ sớm nhất.',
-  },
-];
+      {
+        role: 'bot',
+        content:
+          'Tôi đã gửi cuộc trò chuyện này cho bác sĩ. Bác sĩ sẽ xem xét và phản hồi trong mục Tư vấn bác sĩ sớm nhất.',
+      },
+    ];
 
-const savedMessages = [...messages, ...doctorSentMessages];
+    const savedMessages = [...messages, ...doctorSentMessages];
 
-setMessages(savedMessages);
+    setMessages(savedMessages);
 
-autoSaveConversation(
-  savedMessages,
-  lastUserMessage?.content || 'Cuộc trò chuyện đã gửi bác sĩ tư vấn',
-  level,
-);
+    autoSaveConversation(
+      savedMessages,
+      lastUserMessage?.content || 'Cuộc trò chuyện đã gửi bác sĩ tư vấn',
+      level,
+    );
 
     setShowDoctorConfirm(false);
-    toast.success('Đã tóm tắt trò chuyện và gửi cho bác sĩ tư vấn');
+    toast.success('Đã gửi cho bác sĩ tư vấn và sẽ được xử lý sớm nhất');
   };
 
-  const renderChatInput = (isPinned = false) => (
-    <div className={isPinned ? 'absolute left-0 right-0 bottom-0 px-6' : 'px-6 pb-6'}>
+  const applyChatSuggestion = (value: string) => {
+    if (value === 'Đặt lịch khám') {
+      handleChoice('book');
+      return;
+    }
+
+    if (value === 'Tư vấn thêm') {
+      handleChoice('more');
+      return;
+    }
+
+    if (value === 'Gửi bác sĩ') {
+      openDoctorConfirm();
+      return;
+    }
+
+    if (value === 'Đổi giờ khám') {
+      setMode('booking-form');
+      return;
+    }
+
+    if (value === 'Đổi bác sĩ') {
+      setMode('doctor-selection');
+      return;
+    }
+
+    setInput(value);
+    setInputWasSuggested(true);
+  };
+
+  const renderSuggestionPills = () => {
+    const suggestionsByMode: Partial<Record<ChatMode, string[]>> = {
+      'post-advice': ['Đặt lịch khám', 'Tư vấn thêm', 'Gửi bác sĩ'],
+      'booking-confirm': ['Đổi bác sĩ', 'Đổi giờ khám'],
+      'booking-no-doctor': ['Đổi giờ khám', 'Gửi bác sĩ'],
+    };
+
+    const suggestions = suggestionsByMode[mode];
+
+    if (!suggestions?.length) return null;
+
+    return (
+      <div className="mb-2 overflow-x-auto">
+        <div className="flex gap-2 whitespace-nowrap pb-1">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => applyChatSuggestion(suggestion)}
+              className={suggestionButtonClassName}
+              style={{
+                borderColor: COLORS.BORDER,
+                color: COLORS.TEXT_PRIMARY,
+                backgroundColor: COLORS.WHITE,
+              }}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderFieldSuggestions = (suggestions: string[], onPick: (value: string) => void) => (
+    <div className="mt-2 overflow-x-auto">
+      <div className="flex gap-2 whitespace-nowrap pb-1">
+        {suggestions.map((suggestion) => (
+          <button
+            key={suggestion}
+            type="button"
+            onClick={() => onPick(suggestion)}
+            className={suggestionButtonClassName}
+            style={{
+              borderColor: COLORS.BORDER,
+              color: COLORS.TEXT_SECONDARY,
+              backgroundColor: COLORS.WHITE,
+            }}
+          >
+            {suggestion}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderQuickActionButtons = () => (
+    <div className="flex flex-wrap justify-center gap-3 pt-2">
+      <button
+        type="button"
+        onClick={() => startConsultation('Tôi cần đặt lịch khám bệnh', '', 'booking')}
+        className={`px-5 py-3 ${primaryButtonClassName}`}
+      >
+        Tôi cần đặt lịch khám bệnh
+      </button>
+      <button
+        type="button"
+        onClick={() => startConsultation('Tôi cần tư vấn', '', 'general')}
+        className={`px-5 py-3 ${ghostButtonClassName}`}
+        style={{
+          borderColor: COLORS.BORDER,
+          color: COLORS.TEXT_PRIMARY,
+          backgroundColor: COLORS.WHITE,
+        }}
+      >
+        Tôi cần tư vấn
+      </button>
+    </div>
+  );
+
+  const renderChatBubble = (msg: PatientChatMessage, index: number) => {
+    const isUser = msg.role === 'user';
+
+    return (
+      <div
+        key={index}
+        className={`flex items-end gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300 ${
+          isUser ? 'justify-end' : 'justify-start'
+        }`}
+      >
+        {!isUser && (
+          <div
+            className="w-9 h-9 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-sm"
+            style={{ backgroundColor: COLORS.BUTTON_CHOSEN, color: COLORS.WHITE }}
+          >
+            <Bot size={18} />
+          </div>
+        )}
+
+        <div
+          className="max-w-[78%] px-5 py-4 rounded-3xl text-sm leading-6 whitespace-pre-line shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+          style={{
+            backgroundColor: isUser ? COLORS.BUTTON_CHOSEN : COLORS.WHITE,
+            color: isUser ? COLORS.WHITE : COLORS.TEXT_PRIMARY,
+          }}
+        >
+          {msg.content}
+        </div>
+
+        {isUser && (
+          <div
+            className="w-9 h-9 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-sm"
+            style={{ backgroundColor: COLORS.WHITE, color: COLORS.BUTTON_CHOSEN }}
+          >
+            <UserRound size={18} />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderTypingBubble = () => {
+    if (!isTyping) return null;
+
+    return (
+      <div className="flex items-end gap-3 justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div
+          className="w-9 h-9 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-sm"
+          style={{ backgroundColor: COLORS.BUTTON_CHOSEN, color: COLORS.WHITE }}
+        >
+          <Bot size={18} />
+        </div>
+
+        <div
+          className="px-5 py-4 rounded-3xl shadow-sm flex items-center gap-1"
+          style={{ backgroundColor: COLORS.WHITE }}
+        >
+          <span className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: COLORS.BUTTON_CHOSEN }} />
+          <span
+            className="w-2 h-2 rounded-full animate-bounce [animation-delay:120ms]"
+            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+          />
+          <span
+            className="w-2 h-2 rounded-full animate-bounce [animation-delay:240ms]"
+            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const renderDoctorSelection = () => (
+    <div
+      className="rounded-3xl p-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300"
+      style={{ backgroundColor: COLORS.WHITE }}
+    >
+      <div className="flex items-center gap-2">
+        <div
+          className="w-9 h-9 rounded-3xl flex items-center justify-center"
+          style={{ backgroundColor: COLORS.GRAY, color: COLORS.BUTTON_CHOSEN }}
+        >
+          <Sparkles size={18} />
+        </div>
+        <div>
+          <h3 className="font-medium" style={{ color: COLORS.TEXT_PRIMARY }}>
+            Chọn bác sĩ phù hợp
+          </h3>
+          <p className="text-sm mt-1" style={{ color: COLORS.TEXT_SECONDARY }}>
+            Di chuột vào từng bác sĩ để xem thêm thông tin trước khi chọn.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        {availableDoctors.map((doctor, index) => (
+          <div key={doctor.id} className="relative group">
+            <button
+              type="button"
+              onClick={() => selectDoctorForBooking(doctor.id)}
+              className="px-5 py-3 rounded-3xl border text-sm transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+              style={{
+                borderColor: selectedDoctorId === doctor.id ? COLORS.BUTTON_CHOSEN : COLORS.BORDER,
+                color: COLORS.TEXT_PRIMARY,
+                backgroundColor: selectedDoctorId === doctor.id ? COLORS.HOVER : COLORS.WHITE,
+              }}
+            >
+              {doctor.name}
+            </button>
+
+            <div
+              className="pointer-events-none absolute left-0 bottom-full mb-3 w-72 rounded-3xl p-4 shadow-xl opacity-0 translate-y-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 z-20"
+              style={{ backgroundColor: COLORS.WHITE, border: `1px solid ${COLORS.BORDER}` }}
+            >
+              <p className="font-medium" style={{ color: COLORS.TEXT_PRIMARY }}>
+                {doctor.name}
+              </p>
+              <p className="text-sm mt-1" style={{ color: COLORS.BUTTON_CHOSEN }}>
+                {doctor.specialty}
+              </p>
+              <div className="mt-3 space-y-2 text-sm" style={{ color: COLORS.TEXT_SECONDARY }}>
+                <p>{getDoctorTitle(index)}</p>
+                <p>{getDoctorExperience(index)} năm kinh nghiệm</p>
+                <p>Đánh giá bệnh nhân: {getDoctorRating(index)}</p>
+                <p>Phù hợp với lịch khám và chuyên khoa hệ thống gợi ý.</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2 pt-2">
+        <button
+          type="button"
+          onClick={() => setMode('booking-form')}
+          className={`px-5 py-2.5 ${ghostButtonClassName}`}
+          style={{
+            borderColor: COLORS.BORDER,
+            color: COLORS.TEXT_PRIMARY,
+            backgroundColor: COLORS.WHITE,
+          }}
+        >
+          Sửa thông tin đặt lịch
+        </button>
+        <button
+          type="button"
+          onClick={openDoctorConfirm}
+          className={`px-5 py-2.5 ${ghostButtonClassName}`}
+          style={{
+            borderColor: COLORS.BORDER,
+            color: COLORS.TEXT_PRIMARY,
+            backgroundColor: COLORS.WHITE,
+          }}
+        >
+          Gửi bác sĩ tư vấn trước
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderChatInput = () => (
+    <div className="px-6 pb-3">
       <div className="max-w-4xl mx-auto">
+        {renderSuggestionPills()}
+
         <div className="flex items-end gap-2">
           <div
-            className="flex-1 flex gap-2 rounded-3xl p-2 border"
-            style={{ borderColor: COLORS.BORDER, backgroundColor: COLORS.WHITE }}
+            className="flex-1 flex gap-2 rounded-3xl p-1.5 border shadow-sm transition-all duration-200 focus-within:shadow-md"
+            style={{ borderColor: inputWasSuggested ? COLORS.BUTTON_CHOSEN : COLORS.BORDER, backgroundColor: COLORS.WHITE }}
           >
             <input
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setInputWasSuggested(false);
+              }}
               onKeyDown={(e) => e.key === 'Enter' && handleSendFreeText()}
               placeholder="Nhập tin nhắn..."
-              className="flex-1 px-4 py-3 rounded-3xl border-0 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]"
-              style={{ color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
+              className="flex-1 px-4 py-2.5 min-h-10 rounded-3xl border-0 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]"
+              style={{
+                color: COLORS.TEXT_PRIMARY,
+                backgroundColor: inputWasSuggested ? COLORS.HOVER : COLORS.WHITE,
+              }}
             />
             <button
               type="button"
               onClick={handleSendFreeText}
+              disabled={isTyping || !input.trim()}
               aria-label="Gửi tin nhắn"
-              className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 transition-all duration-200 hover:brightness-110"
-              style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+              className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${primaryButtonClassName}`}
             >
-              <Send size={20} />
+              <Send size={18} />
             </button>
           </div>
 
@@ -561,27 +995,14 @@ autoSaveConversation(
             onClick={saveCurrentConversation}
             aria-label="Lưu lịch sử trò chuyện"
             title="Lưu lịch sử trò chuyện"
-            className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2 transition-all duration-200 hover:brightness-110"
-            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+            className={`w-10 h-10 flex items-center justify-center flex-shrink-0 -translate-y-1 ${primaryButtonClassName}`}
           >
-            <Save size={20} />
-          </button>
-
-          <button
-            type="button"
-            onClick={openDoctorConfirm}
-            aria-label="Gửi bác sĩ tư vấn"
-            title="Gửi bác sĩ tư vấn"
-            className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0 -translate-y-2 transition-all duration-200 hover:brightness-110"
-            style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-          >
-            <Stethoscope size={20} />
+            <Save size={18} />
           </button>
         </div>
 
-        <p className="mt-2 px-2 text-xs leading-5" style={{ color: COLORS.TEXT_SECONDARY }}>
+        <p className="mt-1.5 px-2 text-xs leading-5" style={{ color: COLORS.TEXT_SECONDARY }}>
           Trò chuyện sẽ tự lưu khi AI chẩn đoán, đặt lịch thành công và gửi tư vấn cho bác sĩ.
-          Ngoài trường hợp đó, bạn cần bấm nút lưu lịch sử trò chuyện để có thể xem lại.
         </p>
       </div>
     </div>
@@ -589,59 +1010,121 @@ autoSaveConversation(
 
   return (
     <div className="relative h-full min-h-0 flex flex-col" style={{ backgroundColor: COLORS.GRAY }}>
-      <div className={`flex-1 overflow-y-auto px-6 py-8 ${mode === 'pre-chat' ? 'pb-96' : ''}`}>
+      {mode !== 'pre-chat' && (
+        <>
+
+          <div className="absolute right-5 top-5 z-20">
+            <button
+              type="button"
+              onClick={openDoctorConfirm}
+              className="h-10 px-4 rounded-3xl bg-[var(--color-button-chosen)] text-white text-sm flex items-center gap-2 shadow-sm transition-all duration-200 hover:bg-[var(--color-text-primary)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+              title="Gửi bác sĩ tư vấn"
+            >
+              <Stethoscope size={17} />
+              Gửi bác sĩ tư vấn
+            </button>
+          </div>
+        </>
+      )}
+
+      <div className={`flex-1 overflow-y-auto px-6 py-8 ${mode === 'pre-chat' ? 'pb-10' : 'pb-32'}`}>
         <div className="max-w-4xl mx-auto space-y-5">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div
-                className="max-w-[78%] px-5 py-4 rounded-3xl text-sm leading-6 whitespace-pre-line"
-                style={{
-                  backgroundColor: msg.role === 'user' ? COLORS.BUTTON_CHOSEN : COLORS.WHITE,
-                  color: msg.role === 'user' ? COLORS.WHITE : COLORS.TEXT_PRIMARY,
-                }}
-              >
-                {msg.content}
-              </div>
-            </div>
-          ))}
+          {messages.map(renderChatBubble)}
+          {renderTypingBubble()}
 
           {mode === 'pre-chat' && renderQuickActionButtons()}
 
           {mode === 'quick-actions' && renderQuickActionButtons()}
 
           {mode === 'consult-form' && (
-            <div className="rounded-3xl p-5 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
-              <textarea
-                value={consultForm.symptoms}
-                onChange={(e) => setConsultForm((prev) => ({ ...prev, symptoms: e.target.value }))}
-                className={inputClassName}
-                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-                placeholder="Triệu chứng (bắt buộc)"
-                rows={3}
-              />
-              <input
-                value={consultForm.medicalHistory}
-                onChange={(e) =>
-                  setConsultForm((prev) => ({ ...prev, medicalHistory: e.target.value }))
-                }
-                className={inputClassName}
-                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-                placeholder="Tiền sử bệnh"
-              />
-              <textarea
-                value={consultForm.extraInfo}
-                onChange={(e) => setConsultForm((prev) => ({ ...prev, extraInfo: e.target.value }))}
-                className={inputClassName}
-                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-                placeholder="Thông tin bổ sung"
-                rows={3}
-              />
-              <button
-                type="button"
-                onClick={submitConsultForm}
-                className="px-6 py-3 rounded-3xl text-white text-sm"
-                style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-              >
+            <div
+              className="rounded-3xl p-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300"
+              style={{ backgroundColor: COLORS.WHITE }}
+            >
+              <div>
+                <textarea
+                  value={consultForm.symptoms}
+                  onChange={(e) => {
+                    clearFieldSuggested('symptoms');
+                    setConsultForm((prev) => ({ ...prev, symptoms: e.target.value }));
+                  }}
+                  className={inputClassName}
+                  style={fieldStyle('symptoms')}
+                  placeholder="Mô tả triệu chứng chính, thời điểm bắt đầu và mức độ khó chịu"
+                  rows={3}
+                />
+                {renderFieldSuggestions(
+                  [
+                    'Đau đầu âm ỉ từ sáng nay',
+                    'Ho và đau họng khoảng 2 ngày',
+                    'Đau bụng từng cơn sau khi ăn',
+                    'Tức ngực nhẹ khi vận động',
+                  ],
+                  (value) => {
+                    markFieldSuggested('symptoms');
+                    setConsultForm((prev) => ({
+                      ...prev,
+                      symptoms: prev.symptoms ? `${prev.symptoms}\n${value}` : value,
+                    }));
+                  },
+                )}
+              </div>
+
+              <div>
+                <input
+                  value={consultForm.medicalHistory}
+                  onChange={(e) => {
+                    clearFieldSuggested('medicalHistory');
+                    setConsultForm((prev) => ({ ...prev, medicalHistory: e.target.value }));
+                  }}
+                  className={inputClassName}
+                  style={fieldStyle('medicalHistory')}
+                  placeholder="Tiền sử bệnh, dị ứng thuốc hoặc bệnh đang điều trị"
+                />
+                {renderFieldSuggestions(
+                  [
+                    'Không có tiền sử bệnh đáng chú ý',
+                    'Có tiền sử dị ứng thuốc',
+                    'Đang điều trị huyết áp',
+                    'Có bệnh nền cần lưu ý',
+                  ],
+                  (value) => {
+                    markFieldSuggested('medicalHistory');
+                    setConsultForm((prev) => ({ ...prev, medicalHistory: value }));
+                  },
+                )}
+              </div>
+
+              <div>
+                <textarea
+                  value={consultForm.extraInfo}
+                  onChange={(e) => {
+                    clearFieldSuggested('extraInfo');
+                    setConsultForm((prev) => ({ ...prev, extraInfo: e.target.value }));
+                  }}
+                  className={inputClassName}
+                  style={fieldStyle('extraInfo')}
+                  placeholder="Thông tin bổ sung như thuốc đã dùng, nhiệt độ, kết quả đo gần đây"
+                  rows={3}
+                />
+                {renderFieldSuggestions(
+                  [
+                    'Tôi chưa dùng thuốc gì',
+                    'Tôi đã uống thuốc hạ sốt',
+                    'Triệu chứng nặng hơn vào buổi tối',
+                    'Tôi muốn được bác sĩ kiểm tra kỹ',
+                  ],
+                  (value) => {
+                    markFieldSuggested('extraInfo');
+                    setConsultForm((prev) => ({
+                      ...prev,
+                      extraInfo: prev.extraInfo ? `${prev.extraInfo}\n${value}` : value,
+                    }));
+                  },
+                )}
+              </div>
+
+              <button type="button" onClick={submitConsultForm} className={`px-6 py-3 ${primaryButtonClassName}`}>
                 Gửi
               </button>
             </div>
@@ -649,31 +1132,22 @@ autoSaveConversation(
 
           {mode === 'post-advice' && (
             <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => handleChoice('book')}
-                className="px-5 py-3 rounded-3xl text-white text-sm"
-                style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-              >
+              <button type="button" onClick={() => handleChoice('book')} className={`px-5 py-3 ${primaryButtonClassName}`}>
                 Có, đặt lịch khám
               </button>
               <button
                 type="button"
                 onClick={() => handleChoice('more')}
-                className="px-5 py-3 rounded-3xl border text-sm"
+                className={`px-5 py-3 ${ghostButtonClassName}`}
                 style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
               >
                 Muốn tư vấn thêm
               </button>
               <button
                 type="button"
-                onClick={openDoctorConfirm}
-                className="px-5 py-3 rounded-3xl border text-sm flex items-center gap-2"
-                style={{
-                  borderColor: COLORS.BORDER,
-                  color: COLORS.TEXT_PRIMARY,
-                  backgroundColor: COLORS.WHITE,
-                }}
+                onClick={() => handleChoice('doctor')}
+                className={`px-5 py-3 flex items-center gap-2 ${ghostButtonClassName}`}
+                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
               >
                 <Stethoscope size={16} />
                 Gửi bác sĩ tư vấn
@@ -681,7 +1155,7 @@ autoSaveConversation(
               <button
                 type="button"
                 onClick={() => handleChoice('no')}
-                className="px-5 py-3 rounded-3xl border text-sm"
+                className={`px-5 py-3 ${ghostButtonClassName}`}
                 style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
               >
                 Không, cảm ơn
@@ -690,34 +1164,69 @@ autoSaveConversation(
           )}
 
           {mode === 'booking-form' && (
-            <div className="rounded-3xl p-5 space-y-4" style={{ backgroundColor: COLORS.WHITE }}>
+            <div
+              className="rounded-3xl p-5 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300"
+              style={{ backgroundColor: COLORS.WHITE }}
+            >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <input
-                  value={bookingForm.name}
-                  onChange={(e) => setBookingForm((prev) => ({ ...prev, name: e.target.value }))}
-                  className={inputClassName}
-                  style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-                  placeholder="Họ tên"
-                />
-                <input
-                  value={bookingForm.phone}
-                  onChange={(e) => setBookingForm((prev) => ({ ...prev, phone: e.target.value }))}
-                  className={inputClassName}
-                  style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-                  placeholder="Số điện thoại"
-                />
-                <input
-                  value={bookingForm.email}
-                  onChange={(e) => setBookingForm((prev) => ({ ...prev, email: e.target.value }))}
-                  className={inputClassName}
-                  style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-                  placeholder="Email"
-                />
+                <div>
+                  <input
+                    value={bookingForm.name}
+                    onChange={(e) => {
+                      clearFieldSuggested('bookingName');
+                      setBookingForm((prev) => ({ ...prev, name: e.target.value }));
+                    }}
+                    className={inputClassName}
+                    style={fieldStyle('bookingName')}
+                    placeholder="Họ tên người đi khám"
+                  />
+                  {renderFieldSuggestions([profile.name], (value) => {
+                    markFieldSuggested('bookingName');
+                    setBookingForm((prev) => ({ ...prev, name: value }));
+                  })}
+                </div>
+
+                <div>
+                  <input
+                    value={bookingForm.phone}
+                    onChange={(e) => {
+                      clearFieldSuggested('bookingPhone');
+                      setBookingForm((prev) => ({ ...prev, phone: e.target.value }));
+                    }}
+                    className={inputClassName}
+                    style={fieldStyle('bookingPhone')}
+                    placeholder="Số điện thoại liên hệ"
+                  />
+                  {renderFieldSuggestions([profile.phone], (value) => {
+                    markFieldSuggested('bookingPhone');
+                    setBookingForm((prev) => ({ ...prev, phone: value }));
+                  })}
+                </div>
+
+                <div>
+                  <input
+                    value={bookingForm.email}
+                    onChange={(e) => {
+                      clearFieldSuggested('bookingEmail');
+                      setBookingForm((prev) => ({ ...prev, email: e.target.value }));
+                    }}
+                    className={inputClassName}
+                    style={fieldStyle('bookingEmail')}
+                    placeholder="Email nhận thông báo lịch khám"
+                  />
+                  {renderFieldSuggestions([profile.email], (value) => {
+                    markFieldSuggested('bookingEmail');
+                    setBookingForm((prev) => ({ ...prev, email: value }));
+                  })}
+                </div>
               </div>
 
               <select
                 value={bookingForm.specialty}
-                onChange={(e) => setBookingForm((prev) => ({ ...prev, specialty: e.target.value }))}
+                onChange={(e) => {
+                  setSelectedDoctorId(null);
+                  setBookingForm((prev) => ({ ...prev, specialty: e.target.value }));
+                }}
                 className={inputClassName}
                 style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
               >
@@ -733,12 +1242,7 @@ autoSaveConversation(
                   <p className="text-sm font-medium" style={{ color: COLORS.TEXT_PRIMARY }}>
                     Chọn lịch khám
                   </p>
-                  <button
-                    type="button"
-                    onClick={addBookingSlot}
-                    className="w-9 h-9 rounded-3xl flex items-center justify-center text-white"
-                    style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-                  >
+                  <button type="button" onClick={addBookingSlot} className={`w-9 h-9 flex items-center justify-center ${primaryButtonClassName}`}>
                     <Plus size={18} />
                   </button>
                 </div>
@@ -768,7 +1272,7 @@ autoSaveConversation(
                     <button
                       type="button"
                       onClick={() => removeBookingSlot(index)}
-                      className="w-11 h-11 rounded-3xl border flex items-center justify-center"
+                      className={`w-11 h-11 flex items-center justify-center ${ghostButtonClassName}`}
                       style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_SECONDARY }}
                     >
                       <X size={16} />
@@ -777,28 +1281,43 @@ autoSaveConversation(
                 ))}
               </div>
 
-              <textarea
-                value={bookingForm.notes}
-                onChange={(e) => setBookingForm((prev) => ({ ...prev, notes: e.target.value }))}
-                className={inputClassName}
-                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
-                placeholder="Thông tin bổ sung"
-                rows={3}
-              />
+              <div>
+                <textarea
+                  value={bookingForm.notes}
+                  onChange={(e) => {
+                    clearFieldSuggested('bookingNotes');
+                    setBookingForm((prev) => ({ ...prev, notes: e.target.value }));
+                  }}
+                  className={inputClassName}
+                  style={fieldStyle('bookingNotes')}
+                  placeholder="Ghi chú thêm cho phòng khám hoặc bác sĩ"
+                  rows={3}
+                />
+                {renderFieldSuggestions(
+                  [
+                    'Tôi muốn được gọi xác nhận trước khi khám',
+                    'Tôi ưu tiên bác sĩ có lịch sớm nhất',
+                    'Tôi cần tư vấn kỹ trước khi khám',
+                    'Tôi có mang theo kết quả xét nghiệm cũ',
+                  ],
+                  (value) => {
+                    markFieldSuggested('bookingNotes');
+                    setBookingForm((prev) => ({
+                      ...prev,
+                      notes: prev.notes ? `${prev.notes}\n${value}` : value,
+                    }));
+                  },
+                )}
+              </div>
 
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={submitBookingForm}
-                  className="px-6 py-3 rounded-3xl text-white text-sm"
-                  style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-                >
+                <button type="button" onClick={submitBookingForm} className={`px-6 py-3 ${primaryButtonClassName}`}>
                   Nộp
                 </button>
                 <button
                   type="button"
                   onClick={cancelBookingForm}
-                  className="px-6 py-3 rounded-3xl border text-sm"
+                  className={`px-6 py-3 ${ghostButtonClassName}`}
                   style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY }}
                 >
                   Hủy
@@ -807,14 +1326,11 @@ autoSaveConversation(
             </div>
           )}
 
+          {mode === 'doctor-selection' && renderDoctorSelection()}
+
           {mode === 'booking-confirm' && (
             <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={confirmBooking}
-                className="px-5 py-3 rounded-3xl text-white text-sm"
-                style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-              >
+              <button type="button" onClick={confirmBooking} className={`px-5 py-3 ${primaryButtonClassName}`}>
                 Có
               </button>
               <button
@@ -827,12 +1343,21 @@ autoSaveConversation(
                       content: 'Không sao. Bạn có thể tiếp tục nhập nội dung cần tư vấn bên dưới.',
                     },
                   );
+                  setSelectedDoctorId(null);
                   setMode('free-chat');
                 }}
-                className="px-5 py-3 rounded-3xl border text-sm"
+                className={`px-5 py-3 ${ghostButtonClassName}`}
                 style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
               >
                 Không
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('doctor-selection')}
+                className={`px-5 py-3 ${ghostButtonClassName}`}
+                style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
+              >
+                Đổi bác sĩ
               </button>
             </div>
           )}
@@ -845,8 +1370,7 @@ autoSaveConversation(
                   appendMessages({ role: 'user', content: 'Có, tôi muốn đổi ca' });
                   setMode('booking-form');
                 }}
-                className="px-5 py-3 rounded-3xl text-white text-sm"
-                style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
+                className={`px-5 py-3 ${primaryButtonClassName}`}
               >
                 Có
               </button>
@@ -862,7 +1386,7 @@ autoSaveConversation(
                   );
                   setMode('free-chat');
                 }}
-                className="px-5 py-3 rounded-3xl border text-sm"
+                className={`px-5 py-3 ${ghostButtonClassName}`}
                 style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY, backgroundColor: COLORS.WHITE }}
               >
                 Không
@@ -872,18 +1396,22 @@ autoSaveConversation(
         </div>
       </div>
 
-      {mode !== 'consult-form' && mode !== 'booking-form' && renderChatInput(mode === 'pre-chat')}
+      {mode !== 'pre-chat' &&
+        mode !== 'consult-form' &&
+        mode !== 'booking-form' &&
+        mode !== 'doctor-selection' &&
+        renderChatInput()}
 
       {showDoctorConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div
-            className="relative w-full max-w-md rounded-3xl p-6 shadow-xl space-y-4"
+            className="relative w-full max-w-md rounded-3xl p-6 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-200"
             style={{ backgroundColor: COLORS.WHITE }}
           >
             <button
               type="button"
               onClick={() => setShowDoctorConfirm(false)}
-              className="absolute right-4 top-4 w-9 h-9 rounded-3xl flex items-center justify-center"
+              className="absolute right-4 top-4 w-9 h-9 rounded-3xl flex items-center justify-center transition-all duration-200 hover:bg-[var(--color-hover)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
               style={{ backgroundColor: COLORS.GRAY, color: COLORS.TEXT_SECONDARY }}
               aria-label="Đóng"
             >
@@ -904,17 +1432,12 @@ autoSaveConversation(
               <button
                 type="button"
                 onClick={() => setShowDoctorConfirm(false)}
-                className="px-5 py-2.5 rounded-3xl border text-sm"
+                className={`px-5 py-2.5 ${ghostButtonClassName}`}
                 style={{ borderColor: COLORS.BORDER, color: COLORS.TEXT_PRIMARY }}
               >
                 Không
               </button>
-              <button
-                type="button"
-                onClick={confirmSendToDoctor}
-                className="px-5 py-2.5 rounded-3xl text-white text-sm"
-                style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
-              >
+              <button type="button" onClick={confirmSendToDoctor} className={`px-5 py-2.5 ${primaryButtonClassName}`}>
                 Xác nhận gửi
               </button>
             </div>

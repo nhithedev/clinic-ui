@@ -32,12 +32,21 @@ export function PatientLayoutWrapper({
     (consultation) => consultation.status === 'pending',
   ).length;
 
+  const resetConsultation = () => {
+    // Dispatch event instead of navigating to avoid page flash
+    window.dispatchEvent(new CustomEvent('reset-consultation'));
+  };
+
   const sidebarItems = [
     {
       id: 'symptom-consultation',
       label: 'Chat tư vấn',
       icon: <MessageCircle size={20} />,
       onClick: () => onNavigate('symptom-consultation'),
+      onAction:
+        currentPage === 'symptom-consultation'
+          ? resetConsultation
+          : undefined,
     },
     {
       id: 'appointment-overview',

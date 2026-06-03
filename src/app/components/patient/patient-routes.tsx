@@ -23,7 +23,7 @@ interface PatientRoutesProps {
   onNavigate: (page: string) => void;
 }
 
-export function PatientRoutes({ currentPage }: PatientRoutesProps) {
+export function PatientRoutes({ currentPage, onNavigate }: PatientRoutesProps) {
   const page = isValidPatientPage(currentPage) ? currentPage : 'symptom-consultation';
 
   switch (page) {
@@ -39,6 +39,6 @@ export function PatientRoutes({ currentPage }: PatientRoutesProps) {
       return <PatientProfile />;
     case 'symptom-consultation':
     default:
-      return <SymptomConsultation />;
+      return <SymptomConsultation onNavigate={onNavigate} />;
   }
 }

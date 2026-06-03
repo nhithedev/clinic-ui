@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { COLORS } from '@/styles/colors';
 import { usePatient, PatientConsultation } from '../patient-context';
 
@@ -19,22 +20,29 @@ export function ConsultationHistory() {
         className="rounded-3xl p-6 space-y-4 flex-shrink-0"
         style={{ backgroundColor: COLORS.WHITE }}
       >
-        <button
-          type="button"
-          onClick={() => setSelected(null)}
-          className="text-sm"
-          style={{ color: COLORS.BUTTON_CHOSEN }}
-        >
-          ← Danh sách
-        </button>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              className="w-10 h-10 rounded-3xl flex items-center justify-center transition-all hover:shadow-sm"
+              style={{ backgroundColor: COLORS.HOVER, color: COLORS.TEXT_PRIMARY }}
+              aria-label="Quay lại"
+            >
+              <ArrowLeft size={18} />
+            </button>
 
-        <div>
-          <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
-            Chi tiết cuộc tư vấn
-          </h3>
-          <p className="text-sm mt-1" style={{ color: COLORS.TEXT_SECONDARY }}>
-            {new Date(selected.date).toLocaleString('vi-VN')} · {levelLabel(selected.level)}
-          </p>
+            <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
+              Chi tiết cuộc tư vấn
+            </h3>
+          </div>
+
+          <span
+            className="px-3 py-1.5 rounded-full text-xs"
+            style={{ backgroundColor: COLORS.LIGHTER, color: COLORS.TEXT_PRIMARY }}
+          >
+            {new Date(selected.date).toLocaleTimeString('vi-VN')} · {levelLabel(selected.level)}
+          </span>
         </div>
       </div>
 
@@ -74,17 +82,17 @@ export function ConsultationHistory() {
       <div className="rounded-3xl overflow-hidden" style={{ backgroundColor: COLORS.WHITE }}>
         <table className="w-full text-sm">
           <thead>
-            <tr style={{ backgroundColor: COLORS.GRAY }}>
-              <th className="text-left p-3">Ngày</th>
-              <th className="text-left p-3">Mức độ</th>
-              <th className="text-left p-3">Tóm tắt</th>
+            <tr className="transition-colors" style={{ backgroundColor: COLORS.LIGHTER }}>
+              <th className="text-left p-3" style={{ color: COLORS.TEXT_PRIMARY }}>Ngày</th>
+              <th className="text-left p-3" style={{ color: COLORS.TEXT_PRIMARY }}>Mức độ</th>
+              <th className="text-left p-3" style={{ color: COLORS.TEXT_PRIMARY }}>Tóm tắt</th>
             </tr>
           </thead>
           <tbody>
             {consultations.map((consultation) => (
               <tr
                 key={consultation.id}
-                className="border-t cursor-pointer"
+                className="border-t cursor-pointer transition-colors hover:bg-[var(--color-hover)]"
                 style={{ borderColor: COLORS.BORDER }}
                 onClick={() => setSelected(consultation)}
               >

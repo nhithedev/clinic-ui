@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Plus } from 'lucide-react';
 import { COLORS } from '@/styles/colors';
 
 interface SidebarItem {
@@ -7,6 +8,7 @@ interface SidebarItem {
   icon: ReactNode;
   onClick: (id: string) => void;
   badge?: number;
+  onAction?: () => void;
 }
 
 interface SidebarProps {
@@ -69,6 +71,19 @@ export const Sidebar = ({ logo, items, activeItem }: SidebarProps) => {
                 {item.badge > 99 ? '99+' : item.badge}
               </span>
             ) : null}
+            {item.onAction && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  item.onAction?.();
+                }}
+                className="ml-1 p-1 rounded-2xl transition-colors hover:bg-white/20"
+                title="Tạo mới"
+              >
+                <Plus size={16} />
+              </button>
+            )}
           </button>
         ))}
       </nav>

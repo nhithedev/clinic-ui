@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { COLORS } from '@/styles/colors';
 import { usePatient } from '../patient-context';
 
 export function PatientNotifications() {
   const { notifications, markNotificationRead } = usePatient();
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
   const selected = notifications.find((n) => n.id === selectedId);
   const hasUnread = notifications.some((n) => !n.read);
 
@@ -15,10 +17,11 @@ export function PatientNotifications() {
           <button
             type="button"
             onClick={() => setSelectedId(null)}
-            className="text-sm"
+            className="p-2 rounded-full hover:bg-[var(--color-hover)] transition-colors"
+            aria-label="Quay lại"
             style={{ color: COLORS.BUTTON_CHOSEN }}
           >
-            ← Danh sách
+            <ArrowLeft size={18} />
           </button>
           <h3 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
             {selected.title}
@@ -36,12 +39,15 @@ export function PatientNotifications() {
 
   return (
     <div className="w-full px-2 md:px-6 space-y-2">
-      <div className="flex justify-end pb-1">
+      <div className="flex items-center justify-between pb-1">
+        <h2 className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
+          Thông báo của bạn
+        </h2>
         <button
           type="button"
           onClick={() => notifications.filter((n) => !n.read).forEach((n) => markNotificationRead(n.id))}
           disabled={!hasUnread}
-          className="text-sm font-medium px-4 py-2 rounded-full transition-all duration-200 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100"
+          className="text-sm font-medium px-4 py-2 rounded-full transition-colors duration-200 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
             backgroundColor: hasUnread ? COLORS.BUTTON_CHOSEN : COLORS.GRAY,
             color: hasUnread ? COLORS.WHITE : COLORS.TEXT_SECONDARY,
@@ -59,9 +65,11 @@ export function PatientNotifications() {
             markNotificationRead(n.id);
             setSelectedId(n.id);
           }}
-          className="w-full text-left rounded-3xl p-4"
+          onMouseEnter={() => setHoveredId(n.id)}
+          onMouseLeave={() => setHoveredId(null)}
+          className="w-full text-left rounded-3xl p-4 transition-colors"
           style={{
-            backgroundColor: n.read ? COLORS.WHITE : COLORS.LIGHTER,
+            backgroundColor: hoveredId === n.id ? COLORS.HOVER : (n.read ? COLORS.WHITE : COLORS.LIGHTER),
             border: `1px solid ${COLORS.BORDER}`,
           }}
         >

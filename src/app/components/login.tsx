@@ -1,63 +1,151 @@
-import { useState } from "react";
-import { Eye, EyeOff, Stethoscope, X } from "lucide-react";
+import { useState, type FormEvent, type ReactNode } from "react";
+import { ArrowLeft, Eye, EyeOff, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
 import bg2 from "@/imports/bg2.png";
 import { COLOR_HEX } from "@/styles/colors";
 
 type RoleId = "doctor" | "manager" | "ai-trainer" | "patient";
-type PatientAuthMode = "register" | "otp";
+type AuthView = "patient-login" | "register" | "otp" | "other-roles" | "staff-login";
 
 interface LoginProps {
   onLogin: (role: string) => void;
 }
 
 export function Login({ onLogin }: LoginProps) {
-  const [selectedRole, setSelectedRole] = useState<RoleId>("doctor");
+  const [view, setView] = useState<AuthView>("patient-login");
+const [, setViewHistory] = useState<AuthView[]>([]);
+
+  const [selectedRole, setSelectedRole] = useState<RoleId>("patient");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [patientMode, setPatientMode] = useState<PatientAuthMode>("register");
   const [registerName, setRegisterName] = useState("");
   const [registerPhone, setRegisterPhone] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [otp, setOtp] = useState("");
 
-  const roles: { id: RoleId; label: string }[] = [
-    { id: "doctor", label: "Bác sĩ" },
-    { id: "manager", label: "Quản lý" },
-    { id: "ai-trainer", label: "Chuyên gia" },
-    { id: "patient", label: "Bệnh nhân" },
-  ];
+  const patientAccount = { username: "patient1@email.com", password: "patient123" };
+  const MOCK_OTP = "123456";
 
   const mockAccounts: Record<
     Exclude<RoleId, "patient">,
-    { username: string; password: string }
+    { username: string; password: string; label: string }
   > = {
-    doctor: { username: "doctor1", password: "doctor123" },
-    manager: { username: "manager1", password: "manager123" },
-    "ai-trainer": { username: "aitrainer1", password: "trainer123" },
+    doctor: { username: "doctor1", password: "doctor123", label: "Bác sĩ" },
+    manager: { username: "manager1", password: "manager123", label: "Quản lý" },
+    "ai-trainer": {
+      username: "aitrainer1",
+      password: "trainer123",
+      label: "Chuyên gia AI",
+    },
   };
 
-  const patientAccount = { username: "patient1@email.com", password: "patient123" };
-  const MOCK_OTP = "123456";
-  const isPatient = selectedRole === "patient";
+  const staffRoles: { id: Exclude<RoleId, "patient">; label: string; desc: string }[] = [
+    { id: "doctor", label: "Bác sĩ", desc: "Quản lý tư vấn và lịch khám" },
+    { id: "manager", label: "Quản lý", desc: "Quản trị phòng khám" },
+    { id: "ai-trainer", label: "Chuyên gia AI", desc: "Huấn luyện chatbot" },
+  ];
 
-  const resetRegisterFlow = () => {
-    setShowRegisterModal(false);
-    setPatientMode("register");
+  const viewIndex: Record<AuthView, number> = {
+    "patient-login": 0,
+    register: 1,
+    otp: 2,
+    "other-roles": 3,
+    "staff-login": 4,
+  };
+
+  const goToView = (nextView: AuthView) => {
+    if (nextView === view) return;
+    setViewHistory((prev) => [...prev, view]);
+    setView(nextView);
+    setError("");
+  };
+
+  const goBack = () => {
+    setError("");
+
+    setViewHistory((prev) => {
+      if (prev.length === 0) {
+        setView("patient-login");
+        return [];
+      }
+
+      const nextHistory = [...prev];
+      const previousView = nextHistory.pop() || "patient-login";
+      setView(previousView);
+      return nextHistory;
+    });
+  };
+
+  const resetToLanding = () => {
+    setView("patient-login");
+    setViewHistory([]);
+    setSelectedRole("patient");
+    setError("");
+  };
+
+  const goRegister = () => {
+    setSelectedRole("patient");
     setRegisterName("");
     setRegisterPhone("");
     setRegisterEmail("");
     setOtp("");
     setError("");
+    goToView("register");
   };
 
-  const handleStaffLogin = (e: React.FormEvent) => {
+  const goOtherRoles = () => {
+    setError("");
+    goToView("other-roles");
+  };
+
+  const goStaffLogin = (role: Exclude<RoleId, "patient">) => {
+    setSelectedRole(role);
+    setUsername("");
+    setPassword("");
+    setShowPassword(false);
+    setError("");
+    goToView("staff-login");
+  };
+
+  const quickLoginPatient = () => {
+    setSelectedRole("patient");
+    setUsername(patientAccount.username);
+    setPassword(patientAccount.password);
+    setError("");
+  };
+
+  const quickLoginStaff = (role: Exclude<RoleId, "patient">) => {
+    const account = mockAccounts[role];
+    setSelectedRole(role);
+    setUsername(account.username);
+    setPassword(account.password);
+    setShowPassword(false);
+    setError("");
+    goToView("staff-login");
+  };
+
+  const handlePatientLogin = (e: FormEvent) => {
     e.preventDefault();
     setError("");
+
+    const loginId = username.trim();
+    if (
+      (loginId === patientAccount.username || loginId === "patient@example.com") &&
+      password === patientAccount.password
+    ) {
+      onLogin("patient");
+    } else {
+      setError("SĐT/Email hoặc mật khẩu không đúng");
+    }
+  };
+
+  const handleStaffLogin = (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+
     if (selectedRole === "patient") return;
 
     const account = mockAccounts[selectedRole];
@@ -68,23 +156,7 @@ export function Login({ onLogin }: LoginProps) {
     }
   };
 
-  const handlePatientLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    const loginId = username.trim();
-    if (
-      (loginId === patientAccount.username ||
-        loginId === "patient@example.com") &&
-      password === patientAccount.password
-    ) {
-      onLogin("patient");
-    } else {
-      setError("SĐT/Email hoặc mật khẩu không đúng");
-    }
-  };
-
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = (e: FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -93,378 +165,372 @@ export function Login({ onLogin }: LoginProps) {
       return;
     }
 
-    setPatientMode("otp");
+    goToView("otp");
   };
 
-  const handleOtp = (e: React.FormEvent) => {
+  const handleOtp = (e: FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (otp === MOCK_OTP) {
       toast.success("Đã đăng ký tài khoản thành công");
-      resetRegisterFlow();
+      setRegisterName("");
+      setRegisterPhone("");
+      setRegisterEmail("");
+      setOtp("");
+      setPassword("");
+      resetToLanding();
     } else {
       setError("Mã OTP không đúng (demo: 123456)");
     }
   };
 
   return (
-    <div className="fixed inset-0 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
-      <section
-        className="hidden h-full lg:block bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${bg2})` }}
-      />
+    <div
+      className="fixed inset-0 overflow-hidden bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${bg2})` }}
+    >
+      <div className="h-full w-full flex items-center justify-center lg:justify-end px-4 sm:px-6 lg:pr-[16vw] lg:pl-8 py-4">
+        <div className="flex items-start gap-2">
+          {view !== "patient-login" && <BackButton onClick={goBack} />}
+          
+          <div
+            className="relative w-full max-w-[440px] rounded-3xl shadow-2xl overflow-hidden border backdrop-blur-sm"
+            style={{
+              backgroundColor: "var(--color-white)",
+              borderColor: COLOR_HEX.BORDER,
+              maxHeight: "calc(100vh - 32px)",
+            }}
+          >
 
-      <section
-        className="h-full flex items-stretch justify-center px-6"
-        style={{ backgroundColor: "var(--color-white)" }}
-      >
-        <div className="w-full max-w-lg h-full flex flex-col justify-center gap-4 overflow-y-auto pt-6 pb-24 relative">
-          {/* NHÓM 1: Cụm Header và Form - Giờ đây nằm CHÍNH GIỮA TUYỆT ĐỐI của màn hình */}
-          <div className="w-full flex flex-col gap-4">
-            {/* Header */}
-            <div className="flex items-center gap-3">
-              <div
-                className="w-12 h-12 rounded-3xl flex items-center justify-center text-white flex-shrink-0"
-                style={{ backgroundColor: COLOR_HEX.BUTTON_CHOSEN }}
+          <div
+            className="flex w-[500%] transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${viewIndex[view] * 20}%)` }}
+          >
+            <AuthPanel>
+              <PanelShell
+                title="AI Clinic"
+                description="Chatbot tư vấn y tế thông minh dành cho bạn"
+                showLogo
               >
-                <Stethoscope className="w-6 h-6" />
-              </div>
+                <form onSubmit={handlePatientLogin} className="w-full space-y-3">
+                  <Field
+                    label="SĐT hoặc Email"
+                    value={username}
+                    onChange={setUsername}
+                    placeholder="SĐT hoặc email"
+                  />
 
-              <div>
-                <h1
-                  className="text-xl font-bold"
-                  style={{ color: COLOR_HEX.TEXT_PRIMARY }}
-                >
-                  Hệ thống quản lý phòng khám
-                </h1>
-                <p
-                  className="text-sm mt-1"
-                  style={{ color: COLOR_HEX.TEXT_SECONDARY }}
-                >
-                  Chọn vai trò và đăng nhập để tiếp tục
-                </p>
-              </div>
-            </div>
+                  <PasswordField
+                    value={password}
+                    onChange={setPassword}
+                    show={showPassword}
+                    onToggle={() => setShowPassword(!showPassword)}
+                  />
 
-            {/* Roles Selection */}
-            <div className="grid grid-cols-4 gap-2 mt-4">
-              {roles.map((role) => (
-                <button
-                  key={role.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedRole(role.id);
-                    setError("");
-                    setShowRegisterModal(false);
-                  }}
-                  className="px-3 py-2.5 rounded-3xl border-2 text-xs font-medium transition-all whitespace-nowrap"
-                  style={
-                    selectedRole === role.id
-                      ? {
-                          backgroundColor: COLOR_HEX.BUTTON_CHOSEN,
-                          borderColor: COLOR_HEX.BUTTON_CHOSEN,
-                          color: "var(--color-white)",
-                        }
-                      : {
-                          backgroundColor: "var(--color-white)",
-                          borderColor: COLOR_HEX.BORDER,
-                          color: COLOR_HEX.TEXT_PRIMARY,
-                        }
-                  }
-                >
-                  {role.label}
-                </button>
-              ))}
-            </div>
+                  <ErrorBox message={error} />
 
-            {/* Form Staff */}
-            {!isPatient && (
-              <form onSubmit={handleStaffLogin} className="space-y-3 mt-1 px-1">
-                <Field
-                  label="Tên đăng nhập"
-                  value={username}
-                  onChange={setUsername}
-                  placeholder="Nhập tên đăng nhập"
-                />
-                <PasswordField
-                  value={password}
-                  onChange={setPassword}
-                  show={showPassword}
-                  onToggle={() => setShowPassword(!showPassword)}
-                />
+                  <SubmitButton label="Đăng nhập" />
 
-                <ErrorBox message={error} />
-                <SubmitButton label="Đăng nhập" />
-
-                <div className="flex items-center justify-center gap-1 pt-1">
-                  <span className="text-sm invisible">-</span>
-                </div>
-              </form>
-            )}
-
-            {/* Form Patient */}
-            {isPatient && (
-              <form
-                onSubmit={handlePatientLogin}
-                className="space-y-3 mt-1 px-1"
-              >
-                <Field
-                  label="SĐT hoặc Email"
-                  value={username}
-                  onChange={setUsername}
-                  placeholder="SĐT hoặc email"
-                />
-                <PasswordField
-                  value={password}
-                  onChange={setPassword}
-                  show={showPassword}
-                  onToggle={() => setShowPassword(!showPassword)}
-                />
-
-                <ErrorBox message={error} />
-                <SubmitButton label="Đăng nhập" />
-
-                <div className="flex items-center justify-center gap-1 pt-1">
-                  <span
-                    className="text-sm"
-                    style={{ color: COLOR_HEX.TEXT_SECONDARY }}
+                  <button
+                    type="button"
+                    onClick={quickLoginPatient}
+                    className="w-full py-2.5 rounded-3xl text-sm font-medium transition-all hover:shadow-sm"
+                    style={{
+                      backgroundColor: COLOR_HEX.LIGHTER,
+                      color: COLOR_HEX.TEXT_PRIMARY,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = COLOR_HEX.HOVER;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = COLOR_HEX.LIGHTER;
+                    }}
                   >
-                    Chưa có tài khoản?
-                  </span>
+                    Đăng nhập nhanh
+                  </button>
+
+                  <div className="text-center pt-1 space-y-1">
+                    <div>
+                      <span className="text-sm" style={{ color: COLOR_HEX.TEXT_SECONDARY }}>
+                        Chưa có tài khoản?{" "}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={goRegister}
+                        className="text-sm hover:underline font-medium"
+                        style={{ color: COLOR_HEX.BUTTON_CHOSEN }}
+                      >
+                        Đăng ký ngay
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={goOtherRoles}
+                      className="text-sm hover:underline font-medium"
+                      style={{ color: COLOR_HEX.BUTTON_CHOSEN }}
+                    >
+                      Đăng nhập với vai trò khác
+                    </button>
+                  </div>
+                </form>
+              </PanelShell>
+            </AuthPanel>
+
+            <AuthPanel>
+              <PanelShell
+                title="Đăng ký tài khoản"
+                description="Tạo tài khoản bệnh nhân để đặt lịch và theo dõi tư vấn"
+              >
+                <form onSubmit={handleRegister} className="w-full space-y-3">
+                  <Field
+                    label="Họ và tên"
+                    value={registerName}
+                    onChange={setRegisterName}
+                    placeholder="VD: Nguyễn Văn A"
+                  />
+
+                  <Field
+                    label="Số điện thoại"
+                    value={registerPhone}
+                    onChange={setRegisterPhone}
+                    placeholder="VD: 0986..."
+                  />
+
+                  <Field
+                    label="Email"
+                    value={registerEmail}
+                    onChange={setRegisterEmail}
+                    type="email"
+                    placeholder="VD: abc@email.com"
+                  />
+
+                  <PasswordField
+                    value={password}
+                    onChange={setPassword}
+                    show={showPassword}
+                    onToggle={() => setShowPassword(!showPassword)}
+                  />
+
+                  <ErrorBox message={error} />
+
+                  <SubmitButton label="Tiếp tục" />
+                </form>
+              </PanelShell>
+            </AuthPanel>
+
+            <AuthPanel>
+              <PanelShell
+                title="Xác thực OTP"
+                description={`Nhập mã OTP đã gửi tới ${registerPhone || "SĐT của bạn"} (demo: 123456)`}
+              >
+                <form onSubmit={handleOtp} className="w-full space-y-4">
+                  <Field
+                    label="Mã OTP"
+                    value={otp}
+                    onChange={setOtp}
+                    placeholder="6 chữ số"
+                  />
+
+                  <ErrorBox message={error} />
+
+                  <SubmitButton label="Xác thực" />
+                </form>
+              </PanelShell>
+            </AuthPanel>
+
+            <AuthPanel>
+              <PanelShell
+                title="Lựa chọn vai trò của bạn"
+                description="Các vai trò nội bộ dành cho nhân sự phòng khám"
+              >
+                <div className="w-full space-y-3">
+                  {staffRoles.map((role) => (
+                    <div
+                      key={role.id}
+                      className="grid grid-cols-[7fr_3fr] rounded-3xl overflow-hidden border transition-all hover:shadow-sm"
+                      style={{ borderColor: COLOR_HEX.BORDER }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => goStaffLogin(role.id)}
+                        className="px-4 py-3 text-left transition-colors"
+                        style={{
+                          backgroundColor: "var(--color-white)",
+                          color: COLOR_HEX.TEXT_PRIMARY,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = COLOR_HEX.HOVER;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "var(--color-white)";
+                        }}
+                      >
+                        <span className="block text-sm font-medium">{role.label}</span>
+                        <span
+                          className="block text-xs mt-0.5"
+                          style={{ color: COLOR_HEX.TEXT_SECONDARY }}
+                        >
+                          {role.desc}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => quickLoginStaff(role.id)}
+                        className="px-3 py-3 text-xs font-medium transition-colors"
+                        style={{
+                          backgroundColor: COLOR_HEX.LIGHTER,
+                          color: COLOR_HEX.TEXT_PRIMARY,
+                          borderLeft: `1px solid ${COLOR_HEX.BORDER}`,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = COLOR_HEX.HOVER;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = COLOR_HEX.LIGHTER;
+                        }}
+                      >
+                        Đăng nhập nhanh
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </PanelShell>
+            </AuthPanel>
+
+            <AuthPanel>
+              <PanelShell
+                title={`Đăng nhập ${selectedRole === "patient" ? "" : mockAccounts[selectedRole]?.label || ""}`}
+                description="Nhập tài khoản để tiếp tục"
+              >
+                <form onSubmit={handleStaffLogin} className="w-full space-y-3">
+                  <Field
+                    label="Tên đăng nhập"
+                    value={username}
+                    onChange={setUsername}
+                    placeholder="Nhập tên đăng nhập"
+                  />
+
+                  <PasswordField
+                    value={password}
+                    onChange={setPassword}
+                    show={showPassword}
+                    onToggle={() => setShowPassword(!showPassword)}
+                  />
+
+                  <ErrorBox message={error} />
+
+                  <SubmitButton label="Đăng nhập" />
+
                   <button
                     type="button"
                     onClick={() => {
-                      setError("");
-                      setPatientMode("register");
-                      setShowRegisterModal(true);
+                      if (selectedRole !== "patient") quickLoginStaff(selectedRole);
                     }}
-                    className="text-sm hover:underline font-medium"
-                    style={{ color: COLOR_HEX.BUTTON_CHOSEN }}
+                    className="w-full py-2.5 rounded-3xl text-sm font-medium transition-all hover:shadow-sm"
+                    style={{
+                      backgroundColor: COLOR_HEX.LIGHTER,
+                      color: COLOR_HEX.TEXT_PRIMARY,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = COLOR_HEX.HOVER;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = COLOR_HEX.LIGHTER;
+                    }}
                   >
-                    Đăng ký ngay
+                    Đăng nhập nhanh
                   </button>
-                </div>
-              </form>
-            )}
-          </div>
-
-          {/* NHÓM 2: Demo Accounts luôn ghim sát đáy độc lập, không ảnh hưởng đến tỷ lệ căn giữa của Form */}
-          <div className="absolute bottom-6 left-0 right-0 pt-4 border-t border-dashed border-gray-200 bg-white">
-            <DemoAccounts
-              onPick={(role, u, p) => {
-                setSelectedRole(role);
-                setUsername(u);
-                setPassword(p);
-                setError("");
-                setShowRegisterModal(false);
-              }}
-            />
+                </form>
+              </PanelShell>
+            </AuthPanel>
           </div>
         </div>
-
-        {showRegisterModal && (
-          <RegisterModal
-            mode={patientMode}
-            setMode={setPatientMode}
-            registerName={registerName}
-            setRegisterName={setRegisterName}
-            registerPhone={registerPhone}
-            setRegisterPhone={setRegisterPhone}
-            registerEmail={registerEmail}
-            setRegisterEmail={setRegisterEmail}
-            password={password}
-            setPassword={setPassword}
-            showPassword={showPassword}
-            setShowPassword={setShowPassword}
-            otp={otp}
-            setOtp={setOtp}
-            error={error}
-            onRegister={handleRegister}
-            onOtp={handleOtp}
-            onClose={resetRegisterFlow}
-            onBack={() => {
-              setError("");
-              setPatientMode("register");
-            }}
-          />
-        )}
-      </section>
+        </div>
+      </div>
     </div>
   );
 }
 
-function RegisterModal({
-  mode,
-  registerName,
-  setRegisterName,
-  registerPhone,
-  setRegisterPhone,
-  registerEmail,
-  setRegisterEmail,
-  password,
-  setPassword,
-  showPassword,
-  setShowPassword,
-  otp,
-  setOtp,
-  error,
-  onRegister,
-  onOtp,
-  onClose,
-  onBack,
+function AuthPanel({ children }: { children: ReactNode }) {
+  return (
+    <section className="w-1/5 flex-shrink-0">
+      <div className="h-[min(680px,calc(100vh-32px))] min-h-[560px] overflow-y-auto px-6 sm:px-8 py-7">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function PanelShell({
+  title,
+  description,
+  showLogo = false,
+  children,
 }: {
-  mode: PatientAuthMode;
-  setMode: (mode: PatientAuthMode) => void;
-  registerName: string;
-  setRegisterName: (value: string) => void;
-  registerPhone: string;
-  setRegisterPhone: (value: string) => void;
-  registerEmail: string;
-  setRegisterEmail: (value: string) => void;
-  password: string;
-  setPassword: (value: string) => void;
-  showPassword: boolean;
-  setShowPassword: (value: boolean) => void;
-  otp: string;
-  setOtp: (value: string) => void;
-  error: string;
-  onRegister: (e: React.FormEvent) => void;
-  onOtp: (e: React.FormEvent) => void;
-  onClose: () => void;
-  onBack: () => void;
+  title: string;
+  description: string;
+  showLogo?: boolean;
+  children: ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div
-        className="relative w-full max-w-md rounded-3xl p-6 shadow-xl"
-        style={{ backgroundColor: "var(--color-white)" }}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 w-9 h-9 rounded-3xl flex items-center justify-center"
-          style={{
-            color: COLOR_HEX.TEXT_SECONDARY,
-            backgroundColor: COLOR_HEX.GRAY,
-          }}
-          aria-label="Đóng đăng ký"
-        >
-          <X size={18} />
-        </button>
-
-        <div className="pr-10 mb-5">
-          <h2
-            className="text-lg font-semibold"
-            style={{ color: COLOR_HEX.TEXT_PRIMARY }}
-          >
-            {mode === "register"
-              ? "Đăng ký tài khoản bệnh nhân"
-              : "Xác thực OTP"}
-          </h2>
-          <p
-            className="text-sm mt-1"
-            style={{ color: COLOR_HEX.TEXT_SECONDARY }}
-          >
-            {mode === "register"
-              ? "Điền thông tin để tạo tài khoản mới"
-              : "Nhập mã OTP để hoàn tất đăng ký"}
-          </p>
-        </div>
-
-        {mode === "register" && (
-          <form onSubmit={onRegister} className="space-y-3 px-1">
-            <Field
-              label="Họ và tên"
-              value={registerName}
-              onChange={setRegisterName}
-              placeholder="VD: Nguyễn Văn A..."
-            />
-            <Field
-              label="Số điện thoại"
-              value={registerPhone}
-              onChange={setRegisterPhone}
-              placeholder="VD: 0986..."
-            />
-            <Field
-              label="Email"
-              value={registerEmail}
-              onChange={setRegisterEmail}
-              type="email"
-              placeholder="VD: abc@email.com"
-            />
-            <PasswordField
-              value={password}
-              onChange={setPassword}
-              show={showPassword}
-              onToggle={() => setShowPassword(!showPassword)}
-            />
-
-            <ErrorBox message={error} />
-
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-2.5 rounded-3xl border text-sm"
-                style={{
-                  borderColor: COLOR_HEX.BORDER,
-                  color: COLOR_HEX.TEXT_PRIMARY,
-                }}
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                className="flex-1 py-2.5 rounded-3xl text-white text-sm"
-                style={{ backgroundColor: COLOR_HEX.BUTTON_CHOSEN }}
-              >
-                Tiếp tục
-              </button>
+    <div className="h-full flex flex-col">
+      <div className="flex-shrink-0 pt-2">
+        {showLogo ? (
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div
+              className="w-16 h-16 rounded-3xl flex items-center justify-center text-white flex-shrink-0"
+              style={{ backgroundColor: COLOR_HEX.BUTTON_CHOSEN }}
+            >
+              <Stethoscope className="w-8 h-8" />
             </div>
-          </form>
-        )}
 
-        {mode === "otp" && (
-          <form onSubmit={onOtp} className="space-y-4 px-1">
-            <p className="text-sm" style={{ color: COLOR_HEX.TEXT_SECONDARY }}>
-              Nhập mã OTP đã gửi tới {registerPhone || "SĐT của bạn"} (demo:
-              123456)
-            </p>
-
-            <Field
-              label="Mã OTP"
-              value={otp}
-              onChange={setOtp}
-              placeholder="6 chữ số"
-            />
-
-            <ErrorBox message={error} />
-
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={onBack}
-                className="flex-1 py-2.5 rounded-3xl border text-sm"
-                style={{
-                  borderColor: COLOR_HEX.BORDER,
-                  color: COLOR_HEX.TEXT_PRIMARY,
-                }}
-              >
-                Quay lại
-              </button>
-              <button
-                type="submit"
-                className="flex-1 py-2.5 rounded-3xl text-white text-sm"
-                style={{ backgroundColor: COLOR_HEX.BUTTON_CHOSEN }}
-              >
-                Xác thực
-              </button>
+            <div>
+              <h1 className="text-xl font-bold" style={{ color: COLOR_HEX.TEXT_PRIMARY }}>
+                {title}
+              </h1>
+              <p className="text-sm mt-1" style={{ color: COLOR_HEX.TEXT_SECONDARY }}>
+                {description}
+              </p>
             </div>
-          </form>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-xl font-bold" style={{ color: COLOR_HEX.TEXT_PRIMARY }}>
+                {title}
+              </h1>
+              <p className="text-sm mt-1" style={{ color: COLOR_HEX.TEXT_SECONDARY }}>
+                {description}
+              </p>
+            </div>
+          </div>
         )}
       </div>
+
+      <div className="flex-1 min-h-0 flex items-center">
+        <div className="w-full">{children}</div>
+      </div>
     </div>
+  );
+}
+
+function BackButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-10 h-10 rounded-3xl flex items-center justify-center transition-all hover:shadow-sm"
+      style={{
+        backgroundColor: COLOR_HEX.HOVER,
+        color: COLOR_HEX.TEXT_PRIMARY,
+      }}
+      aria-label="Quay lại"
+    >
+      <ArrowLeft size={18} />
+    </button>
   );
 }
 
@@ -489,11 +555,12 @@ function Field({
       >
         {label}
       </label>
+
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2.5 rounded-3xl border text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-button-chosen)]"
+        className="w-full px-4 py-2.5 rounded-3xl border text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-button-chosen)] transition-colors"
         style={{
           backgroundColor: "var(--color-white)",
           borderColor: COLOR_HEX.BORDER,
@@ -525,12 +592,13 @@ function PasswordField({
       >
         Mật khẩu
       </label>
+
       <div className="relative">
         <input
           type={show ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full px-4 py-2.5 pr-12 rounded-3xl border text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-button-chosen)]"
+          className="w-full px-4 py-2.5 pr-12 rounded-3xl border text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-button-chosen)] transition-colors"
           style={{
             backgroundColor: "var(--color-white)",
             borderColor: COLOR_HEX.BORDER,
@@ -539,11 +607,13 @@ function PasswordField({
           placeholder="Nhập mật khẩu"
           required
         />
+
         <button
           type="button"
           onClick={onToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2"
+          className="absolute right-3 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-70"
           style={{ color: COLOR_HEX.TEXT_SECONDARY }}
+          aria-label={show ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
         >
           {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
         </button>
@@ -557,13 +627,11 @@ function ErrorBox({ message }: { message: string }) {
 
   return (
     <div
-      className="px-4 text-sm text-center font-medium transition-colors duration-200 select-none"
+      className="px-4 text-sm text-center font-medium transition-colors duration-200 select-none min-h-5"
       style={{
-        // Nếu có lỗi thì đổi sang màu destructive, không có lỗi thì để màu trắng
-        color: hasError ? "var(--color-destructive)" : "#ffffff",
+        color: hasError ? "var(--color-destructive)" : "transparent",
       }}
     >
-      {/* Khi không có lỗi, text tạm này sẽ giữ chỗ cho layout với màu trắng */}
       {hasError ? message : "-"}
     </div>
   );
@@ -573,89 +641,10 @@ function SubmitButton({ label }: { label: string }) {
   return (
     <button
       type="submit"
-      className="w-full text-white py-2.5 rounded-3xl transition-colors hover:opacity-90"
+      className="w-full text-white py-2.5 rounded-3xl transition-all hover:opacity-90 hover:shadow-sm"
       style={{ backgroundColor: COLOR_HEX.BUTTON_CHOSEN }}
     >
       {label}
     </button>
-  );
-}
-
-function DemoAccounts({
-  onPick,
-}: {
-  onPick: (role: RoleId, username: string, password: string) => void;
-}) {
-  const accounts: {
-    role: RoleId;
-    label: string;
-    username: string;
-    password: string;
-  }[] = [
-    {
-      role: "doctor",
-      label: "Bác sĩ",
-      username: "doctor1",
-      password: "doctor123",
-    },
-    {
-      role: "manager",
-      label: "Quản lý",
-      username: "manager1",
-      password: "manager123",
-    },
-    {
-      role: "ai-trainer",
-      label: "Chuyên gia",
-      username: "aitrainer1",
-      password: "trainer123",
-    },
-    {
-      role: "patient",
-      label: "Bệnh nhân",
-      username: "patient1@email.com",
-      password: "patient123",
-    },
-  ];
-
-  return (
-    <div>
-      <p
-        className="text-xs mb-2 text-center"
-        style={{ color: COLOR_HEX.TEXT_SECONDARY }}
-      >
-        Đăng nhập nhanh
-      </p>
-
-      <div className="grid grid-cols-4 gap-2">
-        {accounts.map((account) => (
-          <div
-            key={account.role}
-            className="rounded-3xl p-2 text-center"
-            style={{ backgroundColor: COLOR_HEX.HOVER }}
-          >
-            <p
-              className="text-[11px] mb-1 truncate"
-              style={{ color: COLOR_HEX.TEXT_SECONDARY }}
-            >
-              {account.label}
-            </p>
-            <button
-              type="button"
-              onClick={() =>
-                onPick(account.role, account.username, account.password)
-              }
-              className="w-full px-2 py-1.5 rounded-3xl text-xs"
-              style={{
-                backgroundColor: COLOR_HEX.LIGHTER,
-                color: COLOR_HEX.TEXT_PRIMARY,
-              }}
-            >
-              Dùng
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
