@@ -62,6 +62,7 @@ export function ConsultationsList({ onViewChat }: ConsultationsListProps) {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
+    if (diffMins < 1) return `Vài giây trước`;
     if (diffMins < 60) return `${diffMins} phút trước`;
     if (diffHours < 24) return `${diffHours} giờ trước`;
     if (diffDays < 7) return `${diffDays} ngày trước`;
@@ -72,9 +73,9 @@ export function ConsultationsList({ onViewChat }: ConsultationsListProps) {
   const inProgressCount = consultations.filter(c => c.status === 'in-progress').length;
 
   return (
-    <div className="p-8">
+    <div className="h-full flex flex-col overflow-hidden p-4">
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-3 gap-6 mb-6 flex-shrink-0">
         <div className="bg-white rounded-3xl p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -111,7 +112,7 @@ export function ConsultationsList({ onViewChat }: ConsultationsListProps) {
       </div>
 
       {/* Filter */}
-      <div className="bg-white rounded-3xl border border-[#E5E7EB] p-4 mb-6">
+      <div className="bg-white rounded-3xl border border-[#E5E7EB] p-4 mb-6 flex-shrink-0">
         <div className="flex gap-3">
           {[
             { id: 'all', label: 'Tất cả' },
@@ -135,7 +136,7 @@ export function ConsultationsList({ onViewChat }: ConsultationsListProps) {
       </div>
 
       {/* Consultations List */}
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-4">
         {filteredConsultations.length === 0 ? (
           <div className="bg-white rounded-3xl border border-[#E5E7EB] p-12 text-center">
             <MessageSquare className="w-12 h-12 text-[#6B7280] mx-auto mb-4" />
@@ -147,7 +148,7 @@ export function ConsultationsList({ onViewChat }: ConsultationsListProps) {
               key={consultation.id}
               className="bg-white rounded-3xl border border-[#E5E7EB] p-6 hover:shadow-3xl transition-shadow"
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between mb-5">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-[#1F4A51]">{consultation.patient.name}</h3>
@@ -172,7 +173,7 @@ export function ConsultationsList({ onViewChat }: ConsultationsListProps) {
                 </button>
               </div>
 
-              <div className="bg-[#F5F5F7] rounded-3xl p-4 mb-3">
+              <div className="bg-[#F5F5F7] rounded-3xl p-4 mb-5">
                 <p className="text-sm text-[#6B7280] mb-1">Tóm tắt:</p>
                 <p className="text-[#1F4A51]">{consultation.summary}</p>
               </div>

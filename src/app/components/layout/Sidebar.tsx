@@ -88,7 +88,7 @@ export const Sidebar = ({ logo, items, activeItem }: SidebarProps) => {
           </button>
         ) : (
           <p className="text-xs text-center" style={{ color: COLORS.TEXT_LIGHT }}>
-            © 2024 Clinic Management
+            © 2026 Clinic Management
           </p>
         )}
       </div>

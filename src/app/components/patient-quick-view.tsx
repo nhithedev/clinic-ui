@@ -1,4 +1,4 @@
-import { X, Phone, Mail, MapPin, Calendar, MessageSquare, FileText, AlertCircle, CircleHelp, Bot } from 'lucide-react';
+import { X, Phone, Mail, MapPin, Calendar, MessageSquare, FileText, AlertCircle, CircleHelp, Bot, Check } from 'lucide-react';
 
 interface PatientQuickViewProps {
   patient: any;
@@ -19,15 +19,15 @@ export function PatientQuickView({ patient, onClose, onAccept, onReject }: Patie
   ];
 
   return (
-    <div className="bg-white rounded-3xl border border-[#E5E7EB] sticky top-0">
-      <div className="p-4 border-b border-[#E5E7EB] flex items-center justify-between rounded-t-3xl">
+    <div className="h-full flex flex-col bg-white rounded-3xl border border-[#E5E7EB] ml-6">
+      <div className="flex-shrink-0 p-3 border-b border-[#E5E7EB] flex items-center justify-between rounded-t-3xl">
         <h3 className="text-[#1F4A51] font-semibold">Thông tin bệnh nhân</h3>
         <button onClick={onClose} className="hover:bg-[#F5F5F7] p-1 rounded-3xl transition-colors text-[#6B7280]">
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      <div className="p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto p-6">
         {/* Basic Info */}
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
@@ -138,24 +138,25 @@ export function PatientQuickView({ patient, onClose, onAccept, onReject }: Patie
           </div>
         </div>
 
-        {/* Actions */}
-        {patient.status === 'pending' && (
-          <div className="flex gap-2">
-            <button
-              onClick={onReject}
-              className="flex-1 px-4 py-2 bg-red-50 text-red-600 rounded-3xl hover:bg-red-100 transition-colors"
-            >
-              Từ chối
-            </button>
-            <button
-              onClick={onAccept}
-              className="flex-1 px-4 py-2 bg-[#479AA8] text-white rounded-3xl hover:bg-[#1F4A51] transition-colors"
-            >
-              Tiếp nhận
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Actions — pinned at bottom, outside scroll area */}
+      {patient.status === 'pending' && (
+        <div className="flex-shrink-0 flex gap-2 p-4 border-t border-[#E5E7EB]">
+          <button
+            onClick={onReject}
+            className="flex-1 px-4 py-2 bg-red-50 text-red-600 rounded-3xl hover:bg-red-100 transition-colors"
+          >
+            Từ chối
+          </button>
+          <button
+            onClick={onAccept}
+            className="flex-1 px-4 py-2 bg-[#479AA8] text-white rounded-3xl hover:bg-[#1F4A51] transition-colors"
+          >
+            Tiếp nhận
+          </button>
+        </div>
+      )}
     </div>
   );
 }

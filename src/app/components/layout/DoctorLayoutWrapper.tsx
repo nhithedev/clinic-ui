@@ -124,7 +124,7 @@ export function DoctorLayoutWrapper({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-[#1F4A51] truncate">{apt.patient}</p>
-                    <p className="text-xs text-[#6B7280] line-clamp-2">{apt.reason}</p>
+                    <p className="text-xs text-[#6B7280] line-clamp-1">{apt.reason}</p>
                   </div>
                 </div>
               ))

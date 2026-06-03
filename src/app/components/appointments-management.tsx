@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar as CalendarIcon, List, X, Check, Eye, Search, ChevronDown, Clock3, Smartphone, Bot } from 'lucide-react';
+import { Calendar as CalendarIcon, List, X, Check, Eye, Search, ChevronDown, Clock3,Bot, Paperclip } from 'lucide-react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { PatientQuickView } from './patient-quick-view';
 import { CalendarView } from './calendar-view';
@@ -104,13 +104,13 @@ export function AppointmentsManagement() {
   ];
 
   return (
-    <div className="p-8">
+    <div className="h-full flex flex-col overflow-hidden p-4">
 
       {/* Top bar: Search left, Filters right */}
-      <div className="flex items-start justify-between gap-6 mb-5">
+      <div className="flex items-start justify-between gap-6 mb-5 flex-shrink-0">
 
         {/* Left: Search + View Toggle */}
-        <div className="flex flex-col gap-3">
+        <div className="flex gap-3">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]" />
@@ -200,48 +200,51 @@ export function AppointmentsManagement() {
       </div>
 
       {viewMode === 'calendar' ? (
-        <CalendarView
-          appointments={appointments}
-          searchQuery={searchQuery}
-          filterTime={filterTime}
-          filterPriority={filterPriority}
-        />
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <CalendarView
+            appointments={appointments}
+            searchQuery={searchQuery}
+            filterTime={filterTime}
+            filterPriority={filterPriority}
+          />
+        </div>
       ) : (
-        /* Main card: tabs + list */
-        <div className="bg-white rounded-3xl p-6">
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6 border-b border-[#E5E7EB]">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as TabType)}
-                className={`px-6 py-3 transition-colors relative text-sm ${
-                  activeTab === tab.id ? 'text-[#479AA8]' : 'text-[#6B7280] hover:text-[#1F4A51]'
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  {tab.label}
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${
-                    activeTab === tab.id ? 'bg-[#479AA8] text-white' : 'bg-[#F4FDFC] text-[#6B7280]'
-                  }`}>
-                    {tab.count}
-                  </span>
-                </span>
-                {activeTab === tab.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#479AA8]" />
-                )}
-              </button>
-            ))}
-          </div>
+        /* List mode: two independent columns */
+        <div className="flex-1 min-h-0 flex overflow-hidden">
 
-          {/* List + Quick View */}
-          <div className="flex gap-6">
-            {/* Appointments List — expands/shrinks based on selectedPatient */}
-            <div
-              className="transition-all duration-300 ease-in-out min-w-0"
-              style={{ flex: selectedPatient ? '0 0 55%' : '1 1 100%' }}
-            >
-              <div className="space-y-4">
+          {/* Left: white card with tabs + scrollable list */}
+          <div
+            className="flex flex-col min-h-0 bg-white rounded-3xl p-6 transition-all duration-300 ease-in-out"
+            style={{ flex: selectedPatient ? '0 0 63%' : '1 1 100%' }}
+          >
+            {/* Tabs */}
+            <div className="flex gap-2 mb-6 border-b border-[#E5E7EB] flex-shrink-0">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as TabType)}
+                  className={`px-6 py-3 transition-colors relative text-sm ${
+                    activeTab === tab.id ? 'text-[#479AA8]' : 'text-[#6B7280] hover:text-[#1F4A51]'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    {tab.label}
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                      activeTab === tab.id ? 'bg-[#479AA8] text-white' : 'bg-[#F4FDFC] text-[#6B7280]'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  </span>
+                  {activeTab === tab.id && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#479AA8]" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Scrollable list */}
+            <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="space-y-4">
                 {activeTab === 'requests' && filterAppointments(appointmentRequests).map((apt) => (
                   <div key={apt.id} className="bg-white rounded-3xl border border-[#E5E7EB] p-6 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-4">
@@ -252,20 +255,41 @@ export function AppointmentsManagement() {
                             {getPriorityLabel(apt.priority)}
                           </span>
                         </div>
-                        <p className="text-sm text-[#6B7280]">
-                          {apt.patient.age} tuổi • {apt.patient.gender} • {apt.patient.phone}
-                        </p>
+                        <div className="flex items-center gap-4 text-sm text-sm text-[#1F4A51]">
+                          <span className="flex items-center gap-1"><CalendarIcon className="w-4 h-4" /> {apt.requestedDate}</span>
+                          <span className="flex items-center gap-1"><Clock3 className="w-4 h-4" /> {apt.requestedTime}</span>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => setSelectedPatient(apt)}
-                        className="text-[#479AA8] hover:bg-[#F4FDFC] p-2 rounded-3xl transition-colors"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </button>
+                      <div className="flex gap-2">                        
+                        <button
+                          onClick={() => setSelectedPatient(apt)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-3xl text-sm transition-colors bg-[#479AA8] text-white`}
+                        >
+                          <Eye className="w-4 h-4" />
+                          Xem chi tiết
+                        </button>
+                        <button
+                          onClick={() => handleAccept(apt)}
+                          className="flex items-center gap-2 px-4 py-2 bg-[#479AA8] text-white rounded-3xl hover:bg-[#1F4A51] transition-colors text-sm"
+                        >
+                          <Check className="w-4 h-4" />
+                          Tiếp nhận
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReject(apt)}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-3xl hover:bg-red-100 transition-colors text-sm"
+                        >
+                          <X className="w-4 h-4" />
+                          Từ chối
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="bg-[#F5F5F7] rounded-3xl p-4 mb-4">
-                      <p className="text-sm text-[#6B7280] mb-1">Lý do khám:</p>
+                    <div className="bg-[#F4FDFC] rounded-3xl p-4 mb-4">
+                      <p className="text-sm text-[#479AA8] mb-1 flex items-center gap-1">
+                        <Paperclip className="w-4 h-4" />
+                        Lý do khám:</p>
                       <p className="text-[#1F4A51] text-sm">{apt.reason}</p>
                     </div>
 
@@ -275,30 +299,6 @@ export function AppointmentsManagement() {
                         Tóm tắt AI:
                       </p>
                       <p className="text-sm text-[#1F4A51]">{apt.aiSummary}</p>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm text-[#6B7280]">
-                        <span className="flex items-center gap-1"><CalendarIcon className="w-4 h-4" /> {apt.requestedDate}</span>
-                        <span className="flex items-center gap-1"><Clock3 className="w-4 h-4" /> {apt.requestedTime}</span>
-                        <span className="flex items-center gap-1"><Smartphone className="w-4 h-4" /> {apt.source}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleReject(apt)}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-3xl hover:bg-red-100 transition-colors text-sm"
-                        >
-                          <X className="w-4 h-4" />
-                          Từ chối
-                        </button>
-                        <button
-                          onClick={() => handleAccept(apt)}
-                          className="flex items-center gap-2 px-4 py-2 bg-[#479AA8] text-white rounded-3xl hover:bg-[#1F4A51] transition-colors text-sm"
-                        >
-                          <Check className="w-4 h-4" />
-                          Tiếp nhận
-                        </button>
-                      </div>
                     </div>
                   </div>
                 ))}
@@ -340,21 +340,21 @@ export function AppointmentsManagement() {
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Patient Quick View — slides in */}
-            <div
-              className="transition-all duration-300 ease-in-out overflow-y-auto pr-2"
-              style={{ flex: selectedPatient ? '0 0 45%' : '0 0 0%', opacity: selectedPatient ? 1 : 0 }}
-            >
-              {selectedPatient && (
-                <PatientQuickView
-                  patient={selectedPatient}
-                  onClose={() => setSelectedPatient(null)}
-                  onAccept={() => handleAccept(selectedPatient)}
-                  onReject={() => handleReject(selectedPatient)}
-                />
-              )}
-            </div>
+          {/* Right: PatientQuickView — independent scroll */}
+          <div
+            className="flex flex-col min-h-0 overflow-y-auto transition-all duration-300 ease-in-out"
+            style={{ flex: selectedPatient ? '0 0 37%' : '0 0 0%', opacity: selectedPatient ? 1 : 0 }}
+          >
+            {selectedPatient && (
+              <PatientQuickView
+                patient={selectedPatient}
+                onClose={() => setSelectedPatient(null)}
+                onAccept={() => handleAccept(selectedPatient)}
+                onReject={() => handleReject(selectedPatient)}
+              />
+            )}
           </div>
         </div>
       )}

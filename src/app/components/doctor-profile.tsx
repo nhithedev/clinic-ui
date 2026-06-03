@@ -22,7 +22,7 @@ export function DoctorProfile() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4">
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Card */}
@@ -82,6 +82,25 @@ export function DoctorProfile() {
 
         {/* Details */}
         <div className="lg:col-span-2 space-y-6">
+          
+
+          {/* Work Schedule */}
+          <div className="bg-white rounded-3xl p-6">
+            <h3 className="text-[#1F4A51] font-semibold mb-4">Lịch làm việc</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'].map((day, index) => (
+                <div key={index} className={`p-4 rounded-3xl text-center ${
+                  index < 6 ? 'bg-[#DEF1EF] border border-2 border-[#479AA8]' : 'bg-[#F5F5F7] border border-2 border-[#E5E7EB]'
+                }`}>
+                  <p className="text-sm text-[#1F4A51] mb-1">{day}</p>
+                  <p className="text-xs text-[#6B7280]">
+                    {index < 6 ? '8:00 - 17:00' : 'Nghỉ'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Education */}
           <div className="bg-white rounded-3xl p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -114,23 +133,6 @@ export function DoctorProfile() {
                     ✓
                   </div>
                   <p className="text-[#1F4A51]">{cert}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Work Schedule */}
-          <div className="bg-white rounded-3xl p-6">
-            <h3 className="text-[#1F4A51] font-semibold mb-4">Lịch làm việc</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'].map((day, index) => (
-                <div key={index} className={`p-4 rounded-3xl text-center ${
-                  index < 6 ? 'bg-[#DEF1EF] border border-2 border-[#479AA8]' : 'bg-[#F5F5F7] border border-2 border-[#E5E7EB]'
-                }`}>
-                  <p className="text-sm text-[#1F4A51] mb-1">{day}</p>
-                  <p className="text-xs text-[#6B7280]">
-                    {index < 6 ? '8:00 - 17:00' : 'Nghỉ'}
-                  </p>
                 </div>
               ))}
             </div>

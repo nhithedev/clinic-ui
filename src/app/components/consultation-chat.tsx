@@ -76,22 +76,22 @@ export function ConsultationChat({ consultationId, onBack }: ConsultationChatPro
   return (
     <div className="p-8 flex flex-col h-full">
       <div className="flex-shrink-0 mb-6">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-[#6B7280] hover:text-[#1F4A51] mb-4"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Quay lại danh sách
-        </button>
         <div className="flex items-center justify-between">
-          <div>
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-[#6B7280] hover:text-[#1F4A51]"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Quay lại danh sách
+          </button>
+          {/* <div>
             <h1 className="text-[#1F4A51] mb-2">Hội thoại với {consultation.patient.name}</h1>
             <p className="text-[#6B7280]">{consultation.summary}</p>
-          </div>
+          </div> */}
           {consultation.status !== 'resolved' && (
             <button
               onClick={handleMarkResolved}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-3xl hover:bg-green-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-[#479AA8] text-white rounded-3xl hover:bg-[#1F4A51] transition-colors"
             >
               <CheckCircle className="w-4 h-4" />
               Đánh dấu đã giải quyết

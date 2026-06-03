@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useMemo, useRef, useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
 
 interface Appointment {
   id: number;
@@ -23,6 +23,20 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ appointments, searchQuery = '', filterTime = 'all', filterPriority = 'all' }: CalendarViewProps) {
+  const [showGuide, setShowGuide] = useState(false);
+  const guideRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showGuide) return;
+    const handler = (e: MouseEvent) => {
+      if (guideRef.current && !guideRef.current.contains(e.target as Node)) {
+        setShowGuide(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showGuide]);
+
   const [currentDate, setCurrentDate] = useState(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
@@ -38,7 +52,7 @@ export function CalendarView({ appointments, searchQuery = '', filterTime = 'all
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+    const startingDayOfWeek = (firstDay.getDay() + 6) % 7;
 
     return { daysInMonth, startingDayOfWeek };
   };
@@ -86,13 +100,14 @@ export function CalendarView({ appointments, searchQuery = '', filterTime = 'all
   const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentDate);
   const monthYear = currentDate.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
 
-  const days = [];
+  const days: (number | null)[] = [];
   for (let i = 0; i < startingDayOfWeek; i++) {
     days.push(null);
   }
   for (let day = 1; day <= daysInMonth; day++) {
     days.push(day);
   }
+  while (days.length < 42) days.push(null);
 
   const handleDateClick = (day: number) => {
     const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day);
@@ -114,19 +129,44 @@ export function CalendarView({ appointments, searchQuery = '', filterTime = 'all
 
   return (
     <div className="flex flex-col xl:flex-row gap-6 items-start">
-      <div className="w-full xl:w-[320px] shrink-0 bg-white rounded-3xl p-5">
-        <div className="flex items-center justify-between mb-5">
+      <div className="w-full xl:w-[300px] shrink-0 bg-white rounded-3xl p-5 relative">
+        <div className="flex items-center justify-between mb-1">
           <button onClick={prevMonth} className="p-2 hover:bg-[#F4FDFC] rounded-3xl transition-colors">
             <ChevronLeft className="w-5 h-5 text-[#1F4A51]" />
           </button>
           <h3 className="text-[#1F4A51] capitalize font-medium">{monthYear}</h3>
-          <button onClick={nextMonth} className="p-2 hover:bg-[#F4FDFC] rounded-3xl transition-colors">
-            <ChevronRight className="w-5 h-5 text-[#1F4A51]" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setShowGuide(v => !v)}
+              className="p-2 hover:bg-[#F4FDFC] rounded-3xl transition-colors"
+              title="Hướng dẫn"
+            >
+              <Info className="w-4 h-4 text-[#6B7280]" />
+            </button>
+            <button onClick={nextMonth} className="p-2 hover:bg-[#F4FDFC] rounded-3xl transition-colors">
+              <ChevronRight className="w-5 h-5 text-[#1F4A51]" />
+            </button>
+          </div>
         </div>
 
+        {showGuide && (
+          <div
+            ref={guideRef}
+            className="absolute top-14 right-2 z-20 w-64 bg-white rounded-2xl shadow-lg p-4 border border-[#E5E7EB]"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-[#1F4A51]">Hướng dẫn</p>
+              <button onClick={() => setShowGuide(false)} className="p-1 hover:bg-[#F5F5F7] rounded-full transition-colors">
+                <X className="w-3 h-3 text-[#6B7280]" />
+              </button>
+            </div>
+            <p className="text-xs text-[#6B7280] mb-1">Bấm vào một ngày để lọc bảng bệnh nhân cần khám ở bên phải.</p>
+            <p className="text-xs text-[#6B7280]">Danh sách sẽ tự sắp xếp theo giờ khám của ngày đã chọn.</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-7 gap-2 mb-2">
-          {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map(day => (
+          {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(day => (
             <div key={day} className="text-center text-sm text-[#6B7280] py-2">
               {day}
             </div>
@@ -163,11 +203,6 @@ export function CalendarView({ appointments, searchQuery = '', filterTime = 'all
           })}
         </div>
 
-        <div className="mt-5 space-y-2 text-sm text-[#1F4A51] bg-[#F5F5F7] rounded-3xl p-4">
-          <p className="font-medium">Hướng dẫn</p>
-          <p className="text-[#6B7280]">Bấm vào một ngày để lọc bảng bệnh nhân cần khám ở bên phải.</p>
-          <p className="text-[#6B7280]">Danh sách sẽ tự sắp xếp theo giờ khám của ngày đã chọn.</p>
-        </div>
       </div>
 
       <div className="flex-1 min-w-0 bg-white rounded-3xl p-6">
