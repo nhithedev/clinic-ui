@@ -113,7 +113,7 @@ const initialAppointments: PatientAppointment[] = [
     specialty: 'Tim mạch',
     doctorName: 'BS. Nguyễn Văn A',
     clinicName: 'Phòng khám Tim TP.HCM',
-    date: '2026-06-01',
+    date: '2026-07-01',
     time: '09:00',
     status: 'upcoming',
     pendingDoctorReply: true,
@@ -124,7 +124,7 @@ const initialAppointments: PatientAppointment[] = [
     specialty: 'Nội khoa',
     doctorName: 'BS. Lê Văn C',
     clinicName: 'PK Quận 1',
-    date: '2025-12-10',
+    date: '2026-01-10',
     time: '14:00',
     status: 'completed',
   },
@@ -133,7 +133,7 @@ const initialAppointments: PatientAppointment[] = [
 const initialConsultations: PatientConsultation[] = [
   {
     id: 1,
-    date: '2026-05-20T10:00:00',
+    date: '2026-06-20T10:00:00',
     summary: 'Đau đầu nhẹ, nghỉ ngơi và uống đủ nước',
     level: 'mild',
     rating: 5,
@@ -153,8 +153,8 @@ const initialDoctorConsultations: PatientDoctorConsultation[] = [
   {
     id: 1,
     status: 'pending',
-    createdAt: '2026-05-27T09:00:00',
-    updatedAt: '2026-05-27T09:12:00',
+    createdAt: '2026-06-27T09:00:00',
+    updatedAt: '2026-06-27T09:12:00',
     summary: 'Đau ngực nhẹ và khó thở khi vận động',
     aiSummary:
       'Bệnh nhân mô tả đau ngực nhẹ kèm khó thở khi vận động. AI đã khuyến nghị nên gặp bác sĩ Tim mạch để được kiểm tra rõ hơn.',
@@ -171,21 +171,21 @@ const initialDoctorConsultations: PatientDoctorConsultation[] = [
         id: 1,
         sender: 'patient',
         content: 'Tôi bị đau ngực nhẹ và hơi khó thở khi đi bộ nhanh.',
-        timestamp: '2026-05-27T09:00:00',
+        timestamp: '2026-06-27T09:00:00',
       },
       {
         id: 2,
         sender: 'ai',
         content:
           'Tình trạng này có thể nguy hiểm. Bạn nên đi khám sớm với bác sĩ Tim mạch.',
-        timestamp: '2026-05-27T09:01:00',
+        timestamp: '2026-06-27T09:01:00',
       },
       {
         id: 3,
         sender: 'doctor',
         content:
           'Tôi đã nhận được thông tin. Bạn nên hạn chế vận động mạnh và đặt lịch khám trong thời gian gần nhất.',
-        timestamp: '2026-05-27T09:12:00',
+        timestamp: '2026-06-27T09:12:00',
       },
     ],
   },
@@ -208,7 +208,7 @@ export function PatientProvider({ children }: { children: ReactNode }) {
       id: 1,
       title: 'Nhắc lịch khám',
       body: 'Bạn có lịch khám ngày 01/06/2026 lúc 09:00',
-      time: '2026-05-26T08:00:00',
+      time: '2026-06-26T08:00:00',
       read: false,
     },
   ]);

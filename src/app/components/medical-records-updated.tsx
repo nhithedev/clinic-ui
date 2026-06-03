@@ -96,7 +96,7 @@ export function MedicalRecords() {
       medications: formData.medications.filter(m => m.name),
       notes: formData.notes,
       followUpDate: formData.followUpDate,
-      doctorName: 'Dr. Nguyễn Văn A'
+      doctorName: 'BS. Nguyễn Văn A'
     };
 
     addMedicalRecord(newRecord);

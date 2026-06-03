@@ -9,13 +9,13 @@ interface PatientQuickViewProps {
 
 export function PatientQuickView({ patient, onClose, onAccept, onReject }: PatientQuickViewProps) {
   const medicalHistory = [
-    { date: '2026-03-15', diagnosis: 'Viêm họng', doctor: 'Dr. Nguyễn Văn A' },
-    { date: '2026-02-10', diagnosis: 'Khám sức khỏe định kỳ', doctor: 'Dr. Nguyễn Văn A' }
+    { date: '2026-04-15', diagnosis: 'Viêm họng', doctor: 'BS. Nguyễn Văn A' },
+    { date: '2026-03-10', diagnosis: 'Khám sức khỏe định kỳ', doctor: 'BS. Nguyễn Văn A' }
   ];
 
   const chatHistory = [
-    { date: '2026-04-29 22:30', message: 'Tôi bị đau đầu nhiều, có nên uống thuốc gì không?', response: 'AI đã tư vấn và đề xuất đặt lịch khám' },
-    { date: '2026-04-28 20:15', message: 'Hỏi về giờ làm việc', response: 'AI cung cấp thông tin giờ làm việc' }
+    { date: '2026-05-29 22:30', message: 'Tôi bị đau đầu nhiều, có nên uống thuốc gì không?', response: 'AI đã tư vấn và đề xuất đặt lịch khám' },
+    { date: '2026-05-28 20:15', message: 'Hỏi về giờ làm việc', response: 'AI cung cấp thông tin giờ làm việc' }
   ];
 
   return (
@@ -92,7 +92,7 @@ export function PatientQuickView({ patient, onClose, onAccept, onReject }: Patie
           <h4 className="text-[#1F4A51] mb-3">Lịch sử thuốc</h4>
           <div className="bg-[#F5F5F7] rounded-3xl p-3 border border-[#E5E7EB]">
             <p className="text-sm text-[#1F4A51] mb-1">Paracetamol 500mg</p>
-            <p className="text-xs text-[#6B7280]">Uống 3 lần/ngày sau ăn • 2026-03-15</p>
+            <p className="text-xs text-[#6B7280]">Uống 3 lần/ngày sau ăn • 2026-04-15</p>
           </div>
         </div>
 

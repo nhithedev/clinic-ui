@@ -343,7 +343,7 @@ export function AppointmentsManagement() {
 
             {/* Patient Quick View — slides in */}
             <div
-              className="transition-all duration-300 ease-in-out overflow-hidden pr-2"
+              className="transition-all duration-300 ease-in-out overflow-y-auto pr-2"
               style={{ flex: selectedPatient ? '0 0 45%' : '0 0 0%', opacity: selectedPatient ? 1 : 0 }}
             >
               {selectedPatient && (

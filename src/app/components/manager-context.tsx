@@ -55,7 +55,7 @@ const initialAccounts: Account[] = [
     createdAt: '2026-01-15',
     username: 'patient1',
     gender: 'Nữ',
-    dateOfBirth: '1989-03-20',
+    dateOfBirth: '1989-04-20',
     address: '123 Đường ABC, Q1, TP.HCM'
   },
   {
@@ -68,12 +68,12 @@ const initialAccounts: Account[] = [
     createdAt: '2026-02-20',
     username: 'patient2',
     gender: 'Nam',
-    dateOfBirth: '1975-07-15',
+    dateOfBirth: '1975-08-15',
     address: '456 Đường DEF, Q2, TP.HCM'
   },
   {
     id: 3,
-    name: 'Dr. Nguyễn Văn A',
+    name: 'BS. Nguyễn Văn A',
     email: 'nguyenvana@phongkham.vn',
     phone: '0987654321',
     role: 'doctor',
@@ -166,7 +166,7 @@ const initialActivities: Activity[] = [
     id: '2',
     type: 'account',
     action: 'Cập nhật tài khoản',
-    detail: 'Cập nhật hồ sơ: Dr. Nguyễn Văn A',
+    detail: 'Cập nhật hồ sơ: BS. Nguyễn Văn A',
     time: new Date(Date.now() - 2 * 3600000 - 15 * 60000).toISOString()
   },
   {

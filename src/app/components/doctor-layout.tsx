@@ -36,7 +36,7 @@ export function DoctorLayout({ children, currentPage, onNavigate, onLogout }: Do
             </div>
             <div>
               <h2 style={{ color: '#1F4A51' }}>Bác sĩ</h2>
-              <p className="text-sm" style={{ color: '#6B7280' }}>Dr. Nguyễn Văn A</p>
+              <p className="text-sm" style={{ color: '#6B7280' }}>Nguyễn Văn A</p>
             </div>
           </div>
         </div>

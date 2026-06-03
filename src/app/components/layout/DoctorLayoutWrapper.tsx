@@ -46,7 +46,6 @@ export function DoctorLayoutWrapper({
 
   const upcomingAppointments = appointments
     .filter((apt: any) => apt.status === 'confirmed' && apt.date && apt.time)
-    .slice(0, 4)
     .map((apt: any) => ({
       time: apt.time!,
       patient: apt.patient.name,
@@ -54,8 +53,9 @@ export function DoctorLayoutWrapper({
     }));
 
   const rightSidebar = currentPage === 'dashboard' ? (
-    <div className="space-y-6">
-      <div className="flex flex-col">
+    <div className="flex flex-col h-full">
+      {/* Thắc mắc chờ xử lý */}
+      <div className="bg-white rounded-3xl px-4 pt-4 flex-shrink-0">
         <div className="flex items-center gap-2 mb-4">
           <div className="bg-[#F4FDFC] p-2 rounded-3xl">
             <Bot className="w-5 h-5 text-[#479AA8]" />
@@ -63,16 +63,16 @@ export function DoctorLayoutWrapper({
           <h3 className="text-[#1F4A51] font-semibold">Thắc mắc chờ xử lý</h3>
         </div>
 
-        <div className="space-y-3 flex-1">
+        <div className="flex flex-col gap-3">
           {recentConsultations.length > 0 ? (
             recentConsultations.map((consultation: any) => (
               <div
                 key={consultation.id}
                 onClick={() => onNavigate('consultations')}
-                className="p-4 rounded-3xl transition-colors cursor-pointer bg-white hover:bg-[#F4FDFC] border border-[#E5E7EB]"
+                className="p-3 rounded-3xl transition-colors cursor-pointer bg-[#F5F5F7] hover:bg-[#F4FDFC] border border-[#E5E7EB]"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <p className="text-[#1F4A51]">{consultation.patient.name}</p>
+                <div className="flex items-start justify-between mb-1">
+                  <p className="text-sm text-[#1F4A51]">{consultation.patient.name}</p>
                   <span className={`px-2 py-1 rounded-full text-xs ${
                     consultation.priority === 'high'
                       ? 'bg-red-100 text-red-700'
@@ -83,7 +83,7 @@ export function DoctorLayoutWrapper({
                     {consultation.priority === 'high' ? 'Khẩn cấp' : consultation.priority === 'medium' ? 'Trung bình' : 'Thấp'}
                   </span>
                 </div>
-                <p className="text-sm line-clamp-2" style={{ color: '#6B7280' }}>{consultation.summary}</p>
+                <p className="text-xs line-clamp-1" style={{ color: '#6B7280' }}>{consultation.summary}</p>
               </div>
             ))
           ) : (
@@ -97,7 +97,7 @@ export function DoctorLayoutWrapper({
         {recentConsultations.length > 0 && (
           <button
             onClick={() => onNavigate('consultations')}
-            className="text-sm flex items-center gap-1 transition-colors text-[#479AA8] hover:text-[#1F4A51] justify-end mt-4"
+            className="w-full text-sm flex items-center gap-1 transition-colors text-[#479AA8] hover:text-[#1F4A51] justify-end mt-3 flex-shrink-0"
           >
             Xem tất cả
             <ArrowRight className="w-4 h-4" />
@@ -105,34 +105,42 @@ export function DoctorLayoutWrapper({
         )}
       </div>
 
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2 mb-4">
+      {/* Lịch hẹn sắp tới */}
+      <div className="bg-white rounded-3xl p-4 flex-1 min-h-0 flex flex-col">
+        <div className="flex items-center gap-2 mb-4 flex-shrink-0">
           <div className="bg-[#F4FDFC] p-2 rounded-3xl">
             <Calendar className="w-5 h-5 text-[#479AA8]" />
           </div>
           <h3 className="text-[#1F4A51] font-semibold">Lịch hẹn sắp tới</h3>
         </div>
-        <div className="space-y-3 flex-1">
-          {upcomingAppointments.length > 0 ? (
-            upcomingAppointments.map((apt: any, index: number) => (
-              <div key={index} className="flex items-center gap-3 p-3 rounded-3xl bg-white border border-[#E5E7EB]">
-                <div className="text-white px-3 py-2 rounded-3xl min-w-[72px] text-center bg-[#479AA8]">
-                  <div className="font-medium text-sm">{apt.time}</div>
+
+        <div className="relative flex-1 min-h-0">
+          <div className="absolute inset-0 overflow-y-auto flex flex-col gap-3 pb-10">
+            {upcomingAppointments.length > 0 ? (
+              upcomingAppointments.map((apt: any, index: number) => (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-3xl bg-[#F5F5F7] border border-[#E5E7EB] flex-shrink-0">
+                  <div className="text-white px-3 py-2 rounded-3xl min-w-[72px] text-center bg-[#479AA8]">
+                    <div className="font-medium text-sm">{apt.time}</div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-[#1F4A51] truncate">{apt.patient}</p>
+                    <p className="text-xs text-[#6B7280] line-clamp-2">{apt.reason}</p>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-[#1F4A51] truncate">{apt.patient}</p>
-                  <p className="text-xs text-[#6B7280] line-clamp-2">{apt.reason}</p>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-center py-4 text-sm" style={{ color: '#6B7280' }}>Chưa có lịch hẹn nào</p>
+              ))
+            ) : (
+              <p className="text-center py-4 text-sm" style={{ color: '#6B7280' }}>Chưa có lịch hẹn nào</p>
+            )}
+          </div>
+          {upcomingAppointments.length > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent pointer-events-none" />
           )}
         </div>
+
         {upcomingAppointments.length > 0 && (
           <button
             onClick={() => onNavigate('appointments')}
-            className="text-sm flex items-center gap-1 transition-colors text-[#479AA8] hover:text-[#1F4A51] justify-end mt-4"
+            className="text-sm flex items-center gap-1 transition-colors text-[#479AA8] hover:text-[#1F4A51] justify-end mt-3 flex-shrink-0"
           >
             Xem tất cả
             <ArrowRight className="w-4 h-4" />
@@ -149,7 +157,7 @@ export function DoctorLayoutWrapper({
       sidebarItems={sidebarItems}
       activeItem={currentPage}
       userInfo={{
-        name: 'Dr. Nguyễn Văn A',
+        name: 'BS. Nguyễn Văn A',
         role: 'Bác sĩ',
       }}
       rightSidebar={rightSidebar}

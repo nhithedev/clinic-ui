@@ -74,27 +74,31 @@ export const SharedLayout = ({
 
         <div className="flex-1 flex flex-col overflow-hidden min-h-0">
           <main
-            // Thay đổi: Biến main thành một flex container theo chiều dọc, không cho cuộn ở đây nữa
             className={`flex-1 flex flex-col overflow-hidden min-h-0 ${mainClassName ?? 'p-4'}`}
             style={mainStyle}
           >
-            {/* VÙNG CHỨA CONTENT: Nằm gọn giữa Topbar và Footer, không thể tràn qua khung này */}
-            <div className="flex-1 flex items-stretch gap-4 min-h-0 min-w-0">
+            {/* VÙNG CHỨA CHUNG: Đưa nền xám, rounded-3xl và padding vào đây để bọc cả Section & Right Sidebar */}
+            <div 
+              className="flex-1 flex items-stretch gap-4 min-h-0 min-w-0 rounded-3xl p-4"
+              style={contentStyle ?? { backgroundColor: COLORS.GRAY }}
+            >
               
-              {/* Thẻ section bao bọc nội dung children, cho phép cuộn nội dung độc lập tại đây */}
+              {/* Thẻ section chỉ làm nhiệm vụ cuộn nội dung, bỏ background và rounded gốc */}
               <section
                 className={
                   contentClassName ??
-                  'flex-1 min-w-0 rounded-3xl p-4 flex flex-col overflow-y-auto h-full'
+                  'flex-1 min-w-0 flex flex-col overflow-y-auto h-full'
                 }
-                style={contentStyle ?? { backgroundColor: COLORS.GRAY }}
               >
-                <div className="w-full">{children}</div>
+                {children}
               </section>
 
-              {/* Right Sidebar nếu có, cuộn độc lập không ảnh hưởng đến phần còn lại */}
+              {/* Right Sidebar nằm chung khối nền, phân tách bằng thanh border mỏng (tùy chọn) hoặc khoảng gap */}
               {rightSidebar ? (
-                <aside className={`${rightSidebarWidth} flex-shrink-0 overflow-y-auto h-full`}>
+                <aside
+                  className={`${rightSidebarWidth} flex-shrink-0 overflow-y-auto h-full border-l border-gray-200/50 rounded-3xl`}
+                  style={contentStyle ?? { backgroundColor: COLORS.WHITE }}
+                >
                   {rightSidebar}
                 </aside>
               ) : null}

@@ -68,7 +68,7 @@ export function ConsultationChat({ consultationId, onBack }: ConsultationChatPro
   const getSenderName = (sender: string) => {
     switch (sender) {
       case 'patient': return consultation.patient.name;
-      case 'doctor': return 'Dr. Nguyễn Văn A';
+      case 'doctor': return 'BS. Nguyễn Văn A';
       case 'ai': return 'AI Chatbot';
     }
   };

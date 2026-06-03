@@ -23,7 +23,10 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ appointments, searchQuery = '', filterTime = 'all', filterPriority = 'all' }: CalendarViewProps) {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1));
+  const [currentDate, setCurrentDate] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;

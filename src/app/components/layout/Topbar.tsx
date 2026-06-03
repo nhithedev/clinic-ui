@@ -64,7 +64,7 @@ export const Topbar = ({
   )}
 
   {/* Avatar + Name — với mr để đẩy settings ra ngoài cùng */}
-  <div className="flex items-center gap-3" style={{ marginRight: '4rem' }}>
+  <div className="flex items-center gap-3" style={{ marginRight: '6rem' }}>
     <div
       className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold"
       style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
