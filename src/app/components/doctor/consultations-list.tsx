@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MessageSquare, Clock, AlertCircle, CheckCircle, Eye } from 'lucide-react';
-import { useData } from './data-context';
+import { useData } from '../contexts/data-context';
 
 interface ConsultationsListProps {
   onViewChat: (consultationId: number) => void;

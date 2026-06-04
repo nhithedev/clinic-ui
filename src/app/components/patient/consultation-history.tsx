@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { COLORS } from '@/styles/colors';
-import { usePatient, PatientConsultation } from '../patient-context';
+import { usePatient, PatientConsultation } from '../contexts/patient-context';
 
 const levelLabel = (level: string) => {
   if (level === 'mild') return 'Nhẹ';

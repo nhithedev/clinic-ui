@@ -24,6 +24,8 @@ Do not introduce new hardcoded hex without a token.
 
 ## File placement
 
-- Role pages: `src/app/components/` or `src/app/components/patient/`.
+- Role pages: theo role subdirectory —
+  `src/app/components/doctor/`, `src/app/components/manager/`,
+  `src/app/components/ai-trainer/`, `src/app/components/patient/`.
 - Layout primitives: `src/app/components/layout/`.
 - Tokens: `src/styles/`.

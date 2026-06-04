@@ -7,7 +7,7 @@ import {
   SPECIALTIES,
   MOCK_DOCTORS,
   TIME_SLOTS,
-} from '../patient-context';
+} from '../contexts/patient-context';
 
 const STEPS = ['specialty', 'datetime', 'doctor', 'confirm', 'success'] as const;
 type Step = (typeof STEPS)[number];

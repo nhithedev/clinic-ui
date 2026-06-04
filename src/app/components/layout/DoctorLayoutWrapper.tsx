@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { LayoutDashboard, Calendar, FileText, MessageSquare, User, LogOut, ArrowRight, Bot, AlertCircle } from 'lucide-react';
 import { SharedLayout } from './SharedLayout';
-import { useData } from '../data-context';
+import { useData } from '../contexts/data-context';
 
 interface DoctorLayoutWrapperProps {
   children: ReactNode;

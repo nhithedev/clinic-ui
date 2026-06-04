@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { SharedLayout } from "./SharedLayout";
 import { RightSidebarCalendar } from "./RightSidebarCalendar";
-import { useManager } from "../manager-context";
+import { useManager } from '../contexts/manager-context';
 import { COLORS } from '@/styles/colors';
 
 interface ManagerLayoutWrapperProps {

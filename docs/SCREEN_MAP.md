@@ -17,7 +17,7 @@
 |---------|------------|-----------|
 | `dashboard` | Dashboard | `doctor-dashboard` |
 | `appointments` | Quản lý lịch hẹn | `appointments-management` (+ Calendar, Patient Quick View) |
-| `records` | Hồ sơ khám | `medical-records-updated` |
+| `records` | Hồ sơ khám | `medical-records` |
 | `consultations` | Giải đáp thắc mắc | `consultations-list` → `consultation-chat` |
 | `profile` | Hồ sơ cá nhân | `doctor-profile` |
 
@@ -26,7 +26,7 @@
 | Page ID | Title (VI) | Component |
 |---------|------------|-----------|
 | `dashboard` | Dashboard | `manager-dashboard` |
-| `accounts` | Quản lý tài khoản | `account-management-updated` |
+| `accounts` | Quản lý tài khoản | `account-management` |
 | `schedules` | Quản lý lịch làm việc | `schedule-management` |
 | `profile` | Hồ sơ cá nhân | `manager-profile` |
 
@@ -43,11 +43,11 @@
 
 | Page ID | Title (VI) | Component |
 |---------|------------|-----------|
-| `home` | Trang chủ | `patient/patient-home` |
-| `book-appointment` | Đặt lịch khám | `patient/appointment-booking-wizard` |
-| `my-appointments` | Lịch hẹn của tôi | `patient/my-appointments` |
 | `symptom-consultation` | Tư vấn triệu chứng | `patient/symptom-consultation` |
+| `appointment-overview` | Tổng quan lịch khám | `patient/appointment-overview` |
 | `consultation-history` | Lịch sử tư vấn | `patient/consultation-history` |
+| `doctor-consultations` | Tư vấn bác sĩ | `patient/patient-doctor-consultations` |
+| `medical-records` | Hồ sơ khám bệnh | `patient/patient-medical-records` |
 | `notifications` | Thông báo | `patient/patient-notifications` |
 | `profile` | Hồ sơ cá nhân | `patient/patient-profile` |
 

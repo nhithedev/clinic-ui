@@ -8,7 +8,7 @@ import {
   PatientAppointment,
   TIME_SLOTS,
   usePatient,
-} from '../patient-context';
+} from '../contexts/patient-context';
 
 type TabType = 'pending' | 'confirmed';
 

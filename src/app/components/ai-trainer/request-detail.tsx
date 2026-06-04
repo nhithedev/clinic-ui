@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
-import { useAITrainer, DatasetRow } from './ai-trainer-context';
+import { useAITrainer, DatasetRow } from '../contexts/ai-trainer-context';
 
 interface RequestDetailProps {
   requestId: number;

@@ -1,5 +1,5 @@
 import { Clock, CheckCircle, MessageSquare, Calendar, ArrowRight } from "lucide-react";
-import { useData } from "./data-context";
+import { useData } from "../contexts/data-context";
 
 interface DoctorDashboardProps {
   onNavigate?: (page: string) => void;

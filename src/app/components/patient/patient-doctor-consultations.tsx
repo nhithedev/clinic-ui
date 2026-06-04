@@ -14,7 +14,7 @@ import {
   PatientDoctorConsultation,
   PatientDoctorConsultationMessage,
   usePatient,
-} from '../patient-context';
+} from '../contexts/patient-context';
 
 const inputClassName =
   'flex-1 px-4 py-3 rounded-3xl border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]';

@@ -201,7 +201,37 @@ src/
 │       │   ├── AITrainerLayoutWrapper.tsx
 │       │   ├── PatientLayoutWrapper.tsx
 │       │   └── index.ts
-│       └── patient/ (patient screens)
+│       ├── doctor/
+│       │   ├── doctor-dashboard.tsx
+│       │   ├── appointments-management.tsx
+│       │   ├── calendar-view.tsx
+│       │   ├── consultations-list.tsx
+│       │   ├── consultation-chat.tsx
+│       │   ├── medical-records.tsx
+│       │   ├── doctor-profile.tsx
+│       │   └── patient-quick-view.tsx
+│       ├── manager/
+│       │   ├── manager-dashboard.tsx
+│       │   ├── account-management.tsx
+│       │   ├── schedule-management.tsx
+│       │   └── manager-profile.tsx
+│       ├── ai-trainer/
+│       │   ├── ai-trainer-dashboard.tsx
+│       │   ├── training-management.tsx
+│       │   ├── request-detail.tsx
+│       │   ├── training-results.tsx
+│       │   ├── prompt-configuration.tsx
+│       │   └── ai-trainer-profile.tsx
+│       └── patient/
+│           ├── patient-routes.tsx
+│           ├── symptom-consultation.tsx
+│           ├── appointment-overview.tsx
+│           ├── consultation-history.tsx
+│           ├── patient-doctor-consultations.tsx
+│           ├── patient-medical-records.tsx
+│           ├── patient-notifications.tsx
+│           ├── patient-profile.tsx
+│           └── appointment-booking-wizard.tsx
 ```
 
 ## Migration status
@@ -231,4 +261,4 @@ className={`${COLOR_CLASSES.DARK} ${COLOR_CLASSES.TEXT_DARK}`}
 
 ## Testing
 
-Run `npm run dev` and log in per role. See [SCREEN_MAP.md](SCREEN_MAP.md) and demo accounts in [README.md](README.md).
+Run `npm run dev` and log in per role. See [SCREEN_MAP.md](SCREEN_MAP.md) and demo accounts in [README.md](../README.md).

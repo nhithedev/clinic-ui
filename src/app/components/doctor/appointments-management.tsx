@@ -3,7 +3,7 @@ import { Calendar as CalendarIcon, List, X, Check, Eye, Search, ChevronDown, Clo
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { PatientQuickView } from './patient-quick-view';
 import { CalendarView } from './calendar-view';
-import { useData } from './data-context';
+import { useData } from '../contexts/data-context';
 import { toast } from 'sonner';
 
 type TabType = 'requests' | 'confirmed' | 'completed';

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { COLORS } from '@/styles/colors';
-import { usePatient } from '../patient-context';
+import { usePatient } from '../contexts/patient-context';
 
 export function PatientNotifications() {
   const { notifications, markNotificationRead } = usePatient();
