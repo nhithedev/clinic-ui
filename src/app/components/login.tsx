@@ -2,7 +2,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { ArrowLeft, Brain, ClipboardList, Eye, EyeOff, Stethoscope, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import bg2 from "@/imports/bg2.png";
-import { COLOR_HEX, COLORS } from "@/styles/colors";
+import { COLOR_HEX} from "@/styles/colors";
 
 type RoleId = "doctor" | "manager" | "ai-trainer" | "patient";
 type AuthView = "patient-login" | "register" | "otp" | "other-roles" | "staff-login";
