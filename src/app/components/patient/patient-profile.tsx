@@ -5,18 +5,6 @@ import { usePatient } from '../patient-context';
 
 type Tab = 'info' | 'edit' | 'medical-history';
 
-interface MedicalVisitMock {
-  id: number;
-  date: string;
-  specialty: string;
-  doctorName: string;
-  diagnosis: string;
-  symptoms: string;
-  prescription: string[];
-  notes: string;
-  status: 'done' | 'follow-up';
-}
-
 
 const inputClassName =
   'w-full min-w-0 px-4 py-3 rounded-3xl border bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)]';
