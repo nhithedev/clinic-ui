@@ -17,7 +17,7 @@ interface SidebarProps {
   activeItem?: string;
 }
 
-export const Sidebar = ({ logo, items, activeItem }: SidebarProps) => {
+export const Sidebar = ({ items, activeItem }: SidebarProps) => {
   const logoutItem = items.find((i) => i.id === 'logout');
   const navItems = items.filter((i) => i.id !== 'logout');
 
