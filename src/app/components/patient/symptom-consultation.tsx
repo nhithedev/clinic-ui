@@ -20,7 +20,7 @@ import {
   TIME_SLOTS,
   ConsultationLevel,
   usePatient,
-} from '../patient-context';
+} from '../contexts/patient-context';
 
 type ChatMode =
   | 'pre-chat'

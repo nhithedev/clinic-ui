@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FileText, TestTube, X, Send, ChevronDown } from 'lucide-react';
-import { useAITrainer } from './ai-trainer-context';
+import { useAITrainer } from '../contexts/ai-trainer-context';
 
 export function PromptConfiguration() {
   const { promptConfig, updatePromptConfig, getAllDiseaseLabels } = useAITrainer();

@@ -10,7 +10,7 @@ import {
   Stethoscope,
 } from 'lucide-react';
 import { SharedLayout } from './SharedLayout';
-import { usePatient } from '../patient-context';
+import { usePatient } from '../contexts/patient-context';
 import { COLORS } from '@/styles/colors';
 
 interface PatientLayoutWrapperProps {

@@ -1,7 +1,7 @@
 import ReactApexChart from 'react-apexcharts';
 import type { ApexAxisChartSeries, ApexOptions } from 'apexcharts';
-import { useManager } from './manager-context';
-import { KPICard } from './layout/KPICard';
+import { useManager } from '../contexts/manager-context';
+import { KPICard } from '../layout/KPICard';
 import { COLORS } from '@/styles/colors';
 import { Users, Stethoscope, Activity } from 'lucide-react';
 

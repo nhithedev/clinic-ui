@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Plus, Clock, CheckCircle2, Loader } from 'lucide-react';
-import { useAITrainer } from './ai-trainer-context';
+import { useAITrainer } from '../contexts/ai-trainer-context';
 
 interface TrainingManagementProps {
   onViewDetail: (id: number) => void;

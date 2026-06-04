@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search, Save, Printer, Download, Calendar, ChevronRight, ChevronUp, ChevronDown, Plus, X, CalendarIcon, Clock3 } from 'lucide-react';
-import { useData } from './data-context';
+import { useData } from '../contexts/data-context';
 import { toast } from 'sonner';
 
 export function MedicalRecords() {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Search, X, CalendarIcon, Clock3, Pill, FileText, RefreshCw, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { COLORS, COLOR_HEX } from '@/styles/colors';
-import { PatientMedicalRecord, usePatient, TIME_SLOTS } from '../patient-context';
+import { PatientMedicalRecord, usePatient, TIME_SLOTS } from '../contexts/patient-context';
 
 const inputClassName =
   'w-full px-4 py-3 rounded-3xl border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)] transition-all duration-200 hover:border-[var(--color-button-chosen)]';

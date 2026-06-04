@@ -1,5 +1,5 @@
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
-import { useAITrainer } from './ai-trainer-context';
+import { useAITrainer } from '../contexts/ai-trainer-context';
 
 interface TrainingResultsProps {
   requestId: number;

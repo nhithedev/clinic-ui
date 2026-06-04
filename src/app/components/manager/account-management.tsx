@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, X, Check, Eye, ChevronDown } from 'lucide-react';
 import { Menu } from '@headlessui/react';
-import { useManager } from './manager-context';
+import { useManager } from '../contexts/manager-context';
 import { toast } from 'sonner';
 
 type Role = 'all' | 'patient' | 'doctor' | 'manager' | 'ai-trainer';

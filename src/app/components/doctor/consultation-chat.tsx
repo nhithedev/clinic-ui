@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, Send, Bot, User, Stethoscope, CheckCircle } from 'lucide-react';
-import { useData } from './data-context';
+import { useData } from '../contexts/data-context';
 import { toast } from 'sonner';
 
 interface ConsultationChatProps {

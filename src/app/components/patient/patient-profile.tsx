@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { COLORS } from '@/styles/colors';
-import { usePatient } from '../patient-context';
+import { usePatient } from '../contexts/patient-context';
 
 type Tab = 'info' | 'edit' | 'medical-history';
 
