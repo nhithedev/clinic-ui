@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Stethoscope } from 'lucide-react';
 import { COLORS } from '@/styles/colors';
 
 interface SidebarItem {
@@ -28,13 +28,13 @@ export const Sidebar = ({ logo, items, activeItem }: SidebarProps) => {
     >
       <div className="p-6 flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-3xl flex items-center justify-center text-white font-bold text-lg"
+          className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg"
           style={{ backgroundColor: COLORS.BUTTON_CHOSEN }}
         >
-          {logo || 'C'}
+          <Stethoscope className="w-7 h-7"/>
         </div>
         <span className="font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
-          Clinic
+          AI Clinic
         </span>
       </div>
 
