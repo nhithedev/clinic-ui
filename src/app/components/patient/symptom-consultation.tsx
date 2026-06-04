@@ -75,13 +75,13 @@ const inputClassName =
   'w-full px-4 py-2.5 rounded-3xl border text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-button-chosen)] hover:border-[var(--color-button-chosen)]';
 
 const primaryButtonClassName =
-  'rounded-3xl bg-[var(--color-button-chosen)] text-white text-sm transition-all duration-200 hover:bg-[var(--color-text-primary)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
+  'rounded-3xl bg-[var(--color-button-chosen)] text-white text-sm transition-all duration-200 hover:bg-[var(--color-text-primary)] hover:shadow-md active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
 
 const ghostButtonClassName =
-  'rounded-3xl border text-sm transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 active:scale-[0.98]';
+  'rounded-3xl border text-sm transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0 hover:shadow-sm active:translate-y-0 active:scale-[0.98]';
 
 const suggestionButtonClassName =
-  'shrink-0 px-3 py-1.5 rounded-3xl border text-xs whitespace-nowrap transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]';
+  'shrink-0 px-3 py-1.5 rounded-3xl border text-xs whitespace-nowrap transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] active:translate-y-0 active:scale-[0.98]';
 
 function suggestSpecialty(text: string) {
   const lower = text.toLowerCase();
@@ -464,7 +464,7 @@ export function SymptomConsultation({}: SymptomConsultationProps) {
       nextMessages.push({
         role: 'bot',
         content:
-          'Cảm ơn bạn đã cung cấp thông tin. Mình đã chuẩn bị form đặt lịch ngay bên dưới để bạn hoàn tất đăng ký khám.',
+          'Cảm ơn bạn đã cung cấp thông tin. Tôi đã chuẩn bị form đặt lịch ngay bên dưới để bạn hoàn tất đăng ký khám.',
       });
     }
 
@@ -890,7 +890,7 @@ export function SymptomConsultation({}: SymptomConsultationProps) {
 
         <div className="flex items-end gap-2 max-w-[78%] min-w-0">
           <div
-            className="px-5 py-4 rounded-3xl text-sm leading-6 whitespace-pre-line break-words shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+            className="px-5 py-4 rounded-3xl text-sm leading-6 whitespace-pre-line break-words shadow-sm transition-all duration-200 hover:shadow-md"
             style={{
               backgroundColor: isUser ? COLORS.BUTTON_CHOSEN : COLORS.WHITE,
               color: isUser ? COLORS.WHITE : COLORS.TEXT_PRIMARY,
@@ -903,7 +903,8 @@ export function SymptomConsultation({}: SymptomConsultationProps) {
             <button
               type="button"
               onClick={() => playBotMessage(index)}
-              className={`w-8 h-8 rounded-3xl flex items-center justify-center shrink-0 border transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 active:scale-[0.96] ${
+              className={`w-8 h-8 rounded-3xl flex items-center justify-center shrink-0 border transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)]
+                 active:scale-[0.96] ${
                 speakingMessageIndex === index ? 'animate-pulse' : ''
               }`}
               style={{
@@ -989,7 +990,7 @@ export function SymptomConsultation({}: SymptomConsultationProps) {
             <button
               type="button"
               onClick={() => selectDoctorForBooking(doctor.id)}
-              className="px-5 py-3 rounded-3xl border text-sm transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+              className="px-5 py-3 rounded-3xl border text-sm transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:shadow-md active:translate-y-0 active:scale-[0.98]"
               style={{
                 borderColor: selectedDoctorId === doctor.id ? COLORS.BUTTON_CHOSEN : COLORS.BORDER,
                 color: COLORS.TEXT_PRIMARY,
@@ -1082,7 +1083,7 @@ export function SymptomConsultation({}: SymptomConsultationProps) {
               onClick={toggleRecording}
               aria-label="Ghi âm"
               title="Ghi âm"
-              className={`w-10 h-10 rounded-3xl border flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] hover:-translate-y-0.5 active:scale-[0.96] ${
+              className={`w-10 h-10 rounded-3xl border flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:bg-[var(--color-hover)] hover:border-[var(--color-button-chosen)] hover:text-[var(--color-button-chosen)] active:scale-[0.96] ${
                 isRecording ? 'animate-pulse' : ''
               }`}
               style={{
@@ -1146,7 +1147,7 @@ export function SymptomConsultation({}: SymptomConsultationProps) {
           <button
             type="button"
             onClick={openDoctorConfirm}
-            className="h-10 px-4 rounded-3xl bg-[var(--color-button-chosen)] text-white text-sm flex items-center gap-2 shadow-sm transition-all duration-200 hover:bg-[var(--color-text-primary)] hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.98]"
+            className="h-10 px-4 rounded-3xl bg-[var(--color-button-chosen)] text-white text-sm flex items-center gap-2 shadow-sm transition-all duration-200 hover:bg-[var(--color-text-primary)]hover:shadow-md active:translate-y-0 active:scale-[0.98]"
             title="Gửi bác sĩ tư vấn"
           >
             <Stethoscope size={17} />
@@ -1598,7 +1599,7 @@ export function SymptomConsultation({}: SymptomConsultationProps) {
             <button
               type="button"
               onClick={() => setShowDoctorConfirm(false)}
-              className="absolute right-4 top-4 w-9 h-9 rounded-3xl flex items-center justify-center transition-all duration-200 hover:bg-[var(--color-hover)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+              className="absolute right-4 top-4 w-9 h-9 rounded-3xl flex items-center justify-center transition-all duration-200 hover:bg-[var(--color-hover)] active:translate-y-0 active:scale-[0.98]"
               style={{ backgroundColor: COLORS.GRAY, color: COLORS.TEXT_SECONDARY }}
               aria-label="Đóng"
             >

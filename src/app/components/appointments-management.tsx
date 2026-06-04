@@ -67,10 +67,14 @@ export function AppointmentsManagement() {
     toast.success(`Đã từ chối và gửi email thông báo đến ${rejectingAppointment.patient.name}`);
   };
 
+  // const tabs = [
+  //   { id: 'requests', label: 'Yêu cầu đặt lịch', count: appointmentRequests.length },
+  //   { id: 'confirmed', label: 'Đã xác nhận', count: confirmedAppointments.length },
+  //   { id: 'completed', label: 'Đã khám', count: completedAppointments.length }
+  // ];
   const tabs = [
     { id: 'requests', label: 'Yêu cầu đặt lịch', count: appointmentRequests.length },
-    { id: 'confirmed', label: 'Đã xác nhận', count: confirmedAppointments.length },
-    { id: 'completed', label: 'Đã khám', count: completedAppointments.length }
+    { id: 'confirmed', label: 'Đã xác nhận', count: confirmedAppointments.length }
   ];
 
   const getPriorityColor = (priority: string) => {
@@ -91,9 +95,9 @@ export function AppointmentsManagement() {
 
   const timeOptions = [
     { value: 'all', label: 'Tất cả thời gian' },
-    { value: 'morning', label: 'Buổi sáng (6h-12h)' },
-    { value: 'afternoon', label: 'Buổi chiều (12h-17h)' },
-    { value: 'evening', label: 'Buổi tối (17h-21h)' },
+    { value: 'morning', label: 'Buổi sáng (8h-12h)' },
+    { value: 'afternoon', label: 'Buổi chiều (13h-17h)' },
+    { value: 'evening', label: 'Buổi tối (18h-20h)' },
   ];
 
   const priorityOptions = [

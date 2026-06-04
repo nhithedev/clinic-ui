@@ -108,6 +108,20 @@ flex h-screen overflow-hidden                          ← root, prevents body s
   - Chart data is currently **hardcoded** (static mock series) — not wired to real appointment data
 - `getActivityColor` and `getTimeAgo` helpers removed (no longer needed); `activities` from `useManager()` is still consumed for KPI `todayActivities` / `yesterdayActivities` calculations
 
+#### Login component (`src/app/components/login.tsx`) — updated 2026-06-04
+
+Five-panel sliding auth flow. Panels are laid out as `flex w-[500%]`; the active view is revealed via `translateX(-${viewIndex * 20}%)`. Panel order (indices 0–4): patient-login → register → otp → other-roles → staff-login.
+
+**Role picker panel** (`other-roles`, index 3) — updated 2026-06-04:
+- `staffRoles` array carries `Icon: LucideIcon` and `iconBg: string` per entry:
+  - `doctor` → `Stethoscope`, `COLOR_HEX.BUTTON_CHOSEN` (#479AA8 teal)
+  - `manager` → `ClipboardList`, `COLOR_HEX.DARK` (#1F4A51 dark teal)
+  - `ai-trainer` → `Brain`, `COLORS.INFO` (`var(--color-info)` blue)
+- Icon badge: `w-11 h-11 rounded-2xl` with white icon `w-5 h-5` inside
+- Card: full-width `<button>`, background `COLOR_HEX.GRAY`, hover → `COLOR_HEX.HOVER` via inline style swap, border `COLOR_HEX.BORDER`
+- Label: `text-sm font-semibold` `COLOR_HEX.TEXT_PRIMARY`; description: `text-xs` `COLOR_HEX.TEXT_SECONDARY`
+- Panel max width: `max-w-[440px]`; each `AuthPanel` scrolls independently via `overflow-y-auto` on a `h-[min(680px,calc(100vh-32px))] min-h-[560px]` inner div
+
 #### Responsive notes for next session
 
 - The layout is designed for **desktop only** (sidebar is `fixed w-56`, topbar is `fixed left-56`). There is no mobile breakpoint — adding responsive support would require replacing the fixed sidebar with a drawer/hamburger pattern.
@@ -115,6 +129,7 @@ flex h-screen overflow-hidden                          ← root, prevents body s
 - The right sidebar (`w-80`) is never hidden on smaller viewports — this can cause layout compression on screens narrower than ~1200px. A future task: hide right sidebar below `xl` and add a toggle button.
 - `AppointmentsManagement` list mode uses two fixed-ratio columns (`55%` / `45%`). On screens narrower than ~1100px, the `PatientQuickView` column can become cramped. A future task: collapse QuickView into a drawer/modal on smaller screens.
 - `ManagerDashboard` chart data is hardcoded — wiring to real `appointments` data from `ManagerProvider` is a future task.
+- Login card is `max-w-[440px]` fixed — fine for desktop and tablet; on viewports narrower than ~480px the `px-4` wrapper provides minimal breathing room. No responsive rework planned.
 
 ### State Management
 

@@ -1,8 +1,8 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { ArrowLeft, Eye, EyeOff, Stethoscope } from "lucide-react";
+import { ArrowLeft, Brain, ClipboardList, Eye, EyeOff, Stethoscope, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import bg2 from "@/imports/bg2.png";
-import { COLOR_HEX } from "@/styles/colors";
+import { COLOR_HEX, COLORS } from "@/styles/colors";
 
 type RoleId = "doctor" | "manager" | "ai-trainer" | "patient";
 type AuthView = "patient-login" | "register" | "otp" | "other-roles" | "staff-login";
@@ -42,10 +42,16 @@ const [, setViewHistory] = useState<AuthView[]>([]);
     },
   };
 
-  const staffRoles: { id: Exclude<RoleId, "patient">; label: string; desc: string }[] = [
-    { id: "doctor", label: "Bác sĩ", desc: "Quản lý tư vấn và lịch khám" },
-    { id: "manager", label: "Quản lý", desc: "Quản trị phòng khám" },
-    { id: "ai-trainer", label: "Chuyên gia AI", desc: "Huấn luyện chatbot" },
+  const staffRoles: {
+    id: Exclude<RoleId, "patient">;
+    label: string;
+    desc: string;
+    Icon: LucideIcon;
+    iconBg: string;
+  }[] = [
+    { id: "doctor", label: "Bác sĩ", desc: "Quản lý tư vấn và lịch khám", Icon: Stethoscope, iconBg: COLOR_HEX.BUTTON_CHOSEN },
+    { id: "manager", label: "Quản lý", desc: "Quản trị phòng khám", Icon: ClipboardList, iconBg: COLOR_HEX.BUTTON_CHOSEN },
+    { id: "ai-trainer", label: "Chuyên gia AI", desc: "Huấn luyện chatbot", Icon: Brain, iconBg: COLOR_HEX.BUTTON_CHOSEN },
   ];
 
   const viewIndex: Record<AuthView, number> = {
@@ -207,7 +213,7 @@ const [, setViewHistory] = useState<AuthView[]>([]);
             className="flex w-[500%] transition-transform duration-500 ease-out"
             style={{ transform: `translateX(-${viewIndex[view] * 20}%)` }}
           >
-            <AuthPanel>
+            <AuthPanel active={view === "patient-login"}>
               <PanelShell
                 title="AI Clinic"
                 description="Chatbot tư vấn y tế thông minh dành cho bạn"
@@ -278,7 +284,7 @@ const [, setViewHistory] = useState<AuthView[]>([]);
               </PanelShell>
             </AuthPanel>
 
-            <AuthPanel>
+            <AuthPanel active={view === "register"}>
               <PanelShell
                 title="Đăng ký tài khoản"
                 description="Tạo tài khoản bệnh nhân để đặt lịch và theo dõi tư vấn"
@@ -289,6 +295,7 @@ const [, setViewHistory] = useState<AuthView[]>([]);
                     value={registerName}
                     onChange={setRegisterName}
                     placeholder="VD: Nguyễn Văn A"
+                    showRequired
                   />
 
                   <Field
@@ -296,6 +303,7 @@ const [, setViewHistory] = useState<AuthView[]>([]);
                     value={registerPhone}
                     onChange={setRegisterPhone}
                     placeholder="VD: 0986..."
+                    showRequired
                   />
 
                   <Field
@@ -304,6 +312,7 @@ const [, setViewHistory] = useState<AuthView[]>([]);
                     onChange={setRegisterEmail}
                     type="email"
                     placeholder="VD: abc@email.com"
+                    showRequired
                   />
 
                   <PasswordField
@@ -311,6 +320,7 @@ const [, setViewHistory] = useState<AuthView[]>([]);
                     onChange={setPassword}
                     show={showPassword}
                     onToggle={() => setShowPassword(!showPassword)}
+                    showRequired
                   />
 
                   <ErrorBox message={error} />
@@ -320,7 +330,7 @@ const [, setViewHistory] = useState<AuthView[]>([]);
               </PanelShell>
             </AuthPanel>
 
-            <AuthPanel>
+            <AuthPanel active={view === "otp"}>
               <PanelShell
                 title="Xác thực OTP"
                 description={`Nhập mã OTP đã gửi tới ${registerPhone || "SĐT của bạn"} (demo: 123456)`}
@@ -340,67 +350,56 @@ const [, setViewHistory] = useState<AuthView[]>([]);
               </PanelShell>
             </AuthPanel>
 
-            <AuthPanel>
+            <AuthPanel active={view === "other-roles"}>
               <PanelShell
                 title="Lựa chọn vai trò của bạn"
                 description="Các vai trò nội bộ dành cho nhân sự phòng khám"
               >
                 <div className="w-full space-y-3">
                   {staffRoles.map((role) => (
-                    <div
+                    <button
                       key={role.id}
-                      className="grid grid-cols-[7fr_3fr] rounded-3xl overflow-hidden border transition-all hover:shadow-sm"
-                      style={{ borderColor: COLOR_HEX.BORDER }}
+                      type="button"
+                      onClick={() => goStaffLogin(role.id)}
+                      className="w-full rounded-3xl overflow-hidden transition-all hover:shadow-sm border text-left flex items-center gap-4 px-4 py-3.5"
+                      style={{
+                        backgroundColor: COLOR_HEX.GRAY,
+                        borderColor: COLOR_HEX.BORDER,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = COLOR_HEX.HOVER;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = COLOR_HEX.GRAY;
+                      }}
                     >
-                      <button
-                        type="button"
-                        onClick={() => goStaffLogin(role.id)}
-                        className="px-4 py-3 text-left transition-colors"
-                        style={{
-                          backgroundColor: "var(--color-white)",
-                          color: COLOR_HEX.TEXT_PRIMARY,
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = COLOR_HEX.HOVER;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "var(--color-white)";
-                        }}
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-white"
+                        style={{ backgroundColor: role.iconBg }}
                       >
-                        <span className="block text-sm font-medium">{role.label}</span>
+                        <role.Icon className="w-7 h-7" />
+                      </div>
+                      <div className="flex flex-col">
                         <span
-                          className="block text-xs mt-0.5"
+                          className="text font-semibold"
+                          style={{ color: COLOR_HEX.TEXT_PRIMARY }}
+                        >
+                          {role.label}
+                        </span>
+                        <span
+                          className="text-sm mt-0.5"
                           style={{ color: COLOR_HEX.TEXT_SECONDARY }}
                         >
                           {role.desc}
                         </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => quickLoginStaff(role.id)}
-                        className="px-3 py-3 text-xs font-medium transition-colors"
-                        style={{
-                          backgroundColor: COLOR_HEX.LIGHTER,
-                          color: COLOR_HEX.TEXT_PRIMARY,
-                          borderLeft: `1px solid ${COLOR_HEX.BORDER}`,
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = COLOR_HEX.HOVER;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = COLOR_HEX.LIGHTER;
-                        }}
-                      >
-                        Đăng nhập nhanh
-                      </button>
-                    </div>
+                      </div>
+                    </button>
                   ))}
                 </div>
               </PanelShell>
             </AuthPanel>
 
-            <AuthPanel>
+            <AuthPanel active={view === "staff-login"}>
               <PanelShell
                 title={`Đăng nhập ${selectedRole === "patient" ? "" : mockAccounts[selectedRole]?.label || ""}`}
                 description="Nhập tài khoản để tiếp tục"
@@ -454,9 +453,13 @@ const [, setViewHistory] = useState<AuthView[]>([]);
   );
 }
 
-function AuthPanel({ children }: { children: ReactNode }) {
+function AuthPanel({ children, active }: { children: ReactNode; active?: boolean }) {
   return (
-    <section className="w-1/5 flex-shrink-0">
+    <section
+      className="w-1/5 flex-shrink-0"
+      aria-hidden={!active}
+      style={{ pointerEvents: active ? undefined : "none" }}
+    >
       <div className="h-[min(680px,calc(100vh-32px))] min-h-[560px] overflow-y-auto px-6 sm:px-8 py-7">
         {children}
       </div>
@@ -540,12 +543,14 @@ function Field({
   onChange,
   placeholder,
   type = "text",
+  showRequired = false,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   type?: string;
+  showRequired?: boolean;
 }) {
   return (
     <div>
@@ -554,6 +559,7 @@ function Field({
         style={{ color: COLOR_HEX.TEXT_PRIMARY }}
       >
         {label}
+        {showRequired && <span className="text-red-500 ml-0.5">*</span>}
       </label>
 
       <input
@@ -578,11 +584,13 @@ function PasswordField({
   onChange,
   show,
   onToggle,
+  showRequired = false,
 }: {
   value: string;
   onChange: (v: string) => void;
   show: boolean;
   onToggle: () => void;
+  showRequired?: boolean;
 }) {
   return (
     <div>
@@ -591,6 +599,7 @@ function PasswordField({
         style={{ color: COLOR_HEX.TEXT_PRIMARY }}
       >
         Mật khẩu
+        {showRequired && <span className="text-red-500 ml-0.5">*</span>}
       </label>
 
       <div className="relative">
