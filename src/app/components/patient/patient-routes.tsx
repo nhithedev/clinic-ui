@@ -4,12 +4,14 @@ import { PatientNotifications } from './patient-notifications';
 import { PatientProfile } from './patient-profile';
 import { AppointmentOverview } from './appointment-overview';
 import { PatientDoctorConsultations } from './patient-doctor-consultations';
+import { PatientMedicalRecords } from './patient-medical-records';
 
 const PATIENT_PAGES = new Set([
   'symptom-consultation',
   'appointment-overview',
   'consultation-history',
   'doctor-consultations',
+  'medical-records',
   'notifications',
   'profile',
 ]);
@@ -33,6 +35,8 @@ export function PatientRoutes({ currentPage, onNavigate }: PatientRoutesProps) {
       return <ConsultationHistory />;
     case 'doctor-consultations':
       return <PatientDoctorConsultations />;
+    case 'medical-records':
+      return <PatientMedicalRecords />;
     case 'notifications':
       return <PatientNotifications />;
     case 'profile':

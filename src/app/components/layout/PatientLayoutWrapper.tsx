@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import {
   CalendarDays,
+  ClipboardList,
   History,
   Bell,
   UserCircle,
@@ -68,6 +69,12 @@ export function PatientLayoutWrapper({
       onClick: () => onNavigate('doctor-consultations'),
     },
     {
+      id: 'medical-records',
+      label: 'Hồ sơ khám bệnh',
+      icon: <ClipboardList size={20} />,
+      onClick: () => onNavigate('medical-records'),
+    },
+    {
       id: 'notifications',
       label: 'Thông báo',
       icon: <Bell size={20} />,
@@ -104,6 +111,10 @@ export function PatientLayoutWrapper({
     'doctor-consultations': {
       title: 'Tư vấn bác sĩ',
       desc: 'Theo dõi các cuộc tư vấn đã gửi cho bác sĩ',
+    },
+    'medical-records': {
+      title: 'Hồ sơ khám bệnh',
+      desc: 'Xem lại kết quả và đơn thuốc từ các lần khám',
     },
     notifications: {
       title: 'Thông báo',

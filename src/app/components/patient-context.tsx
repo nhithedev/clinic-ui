@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-export type AppointmentStatus = 'upcoming' | 'completed' | 'cancelled';
+export type AppointmentStatus = 'upcoming' | 'confirmed' | 'completed' | 'cancelled';
 export type ConsultationLevel = 'mild' | 'moderate' | 'urgent';
 
 export interface PatientAppointment {
@@ -68,6 +68,21 @@ export interface PatientDoctorConsultation {
   messages: PatientDoctorConsultationMessage[];
 }
 
+export interface PatientMedicalRecord {
+  id: number;
+  date: string;
+  time: string;
+  symptoms: string;
+  diagnosis: string;
+  treatment: string;
+  medications: Array<{ name: string; dosage: string; instructions: string }>;
+  notes: string;
+  followUpDate: string;
+  doctorName: string;
+  clinicName: string;
+  specialty: string;
+}
+
 interface PatientProfile {
   name: string;
   phone: string;
@@ -86,6 +101,7 @@ interface PatientContextValue {
   consultations: PatientConsultation[];
   notifications: PatientNotification[];
   doctorConsultations: PatientDoctorConsultation[];
+  medicalRecords: PatientMedicalRecord[];
   addAppointment: (apt: AppointmentPayload) => { id: number; code: string };
   rescheduleAppointment: (id: number, date: string, time: string) => void;
   cancelAppointment: (id: number, reason?: string) => void;
@@ -109,7 +125,7 @@ const PatientContext = createContext<PatientContextValue | null>(null);
 const initialAppointments: PatientAppointment[] = [
   {
     id: 1,
-    code: 'APT-2024-001',
+    code: 'APT-2026-001',
     specialty: 'Tim mạch',
     doctorName: 'BS. Nguyễn Văn A',
     clinicName: 'Phòng khám Tim TP.HCM',
@@ -117,6 +133,37 @@ const initialAppointments: PatientAppointment[] = [
     time: '09:00',
     status: 'upcoming',
     pendingDoctorReply: true,
+  },
+  {
+    id: 3,
+    code: 'APT-2026-003',
+    specialty: 'Da liễu',
+    doctorName: 'BS. Phạm Hoàng D',
+    clinicName: 'Bệnh viện Đa khoa ABC',
+    date: '2026-07-10',
+    time: '10:30',
+    status: 'upcoming',
+    pendingDoctorReply: true,
+  },
+  {
+    id: 4,
+    code: 'APT-2026-004',
+    specialty: 'Tai Mũi Họng',
+    doctorName: 'BS. Võ Minh E',
+    clinicName: 'PK Quận 1',
+    date: '2026-07-15',
+    time: '14:00',
+    status: 'confirmed',
+  },
+  {
+    id: 5,
+    code: 'APT-2026-005',
+    specialty: 'Tim mạch',
+    doctorName: 'BS. Trần Thị B',
+    clinicName: 'Phòng khám Tim TP.HCM',
+    date: '2026-07-20',
+    time: '08:00',
+    status: 'confirmed',
   },
   {
     id: 2,
@@ -191,6 +238,54 @@ const initialDoctorConsultations: PatientDoctorConsultation[] = [
   },
 ];
 
+const initialMedicalRecords: PatientMedicalRecord[] = [
+  {
+    id: 1,
+    date: '2026-03-15',
+    time: '09:30',
+    symptoms: 'Đau ngực âm ỉ khi vận động, hồi hộp, khó thở nhẹ',
+    diagnosis: 'Rối loạn nhịp tim nhẹ — ngoại tâm thu thất',
+    treatment:
+      'Hạn chế vận động nặng, tránh chất kích thích (cà phê, thuốc lá), uống thuốc theo đơn, theo dõi nhịp tim',
+    medications: [
+      { name: 'Bisoprolol 2.5mg', dosage: '1 viên/ngày', instructions: 'Uống buổi sáng sau ăn' },
+      { name: 'Magnesium B6', dosage: '2 viên/ngày', instructions: 'Sau bữa ăn chính' },
+    ],
+    notes:
+      'Bệnh nhân nên đo huyết áp hàng ngày và ghi lại nhật ký triệu chứng. Tránh căng thẳng kéo dài.',
+    followUpDate: '2026-04-15',
+    doctorName: 'BS. Nguyễn Văn A',
+    clinicName: 'Phòng khám Tim TP.HCM',
+    specialty: 'Tim mạch',
+  },
+  {
+    id: 2,
+    date: '2026-01-10',
+    time: '14:00',
+    symptoms: 'Ngạt mũi, hắt hơi nhiều, đau họng nhẹ 3 ngày, không sốt',
+    diagnosis: 'Viêm mũi họng cấp do virus',
+    treatment: 'Nghỉ ngơi, uống đủ nước ấm, súc miệng nước muối, dùng thuốc theo đơn',
+    medications: [
+      {
+        name: 'Paracetamol 500mg',
+        dosage: '3 lần/ngày khi có triệu chứng',
+        instructions: 'Uống sau ăn, cách nhau ít nhất 6 tiếng',
+      },
+      {
+        name: 'Clorpheniramin 4mg',
+        dosage: '1 viên x 2 lần/ngày',
+        instructions: 'Uống sau ăn, tránh lái xe',
+      },
+    ],
+    notes:
+      'Kiêng đồ lạnh và đồ uống có đá. Nếu sốt cao trên 38.5°C hoặc triệu chứng kéo dài quá 7 ngày cần tái khám ngay.',
+    followUpDate: '',
+    doctorName: 'BS. Lê Văn C',
+    clinicName: 'PK Quận 1',
+    specialty: 'Nội khoa',
+  },
+];
+
 export function PatientProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<PatientProfile>({
     name: 'Trần Thị Bệnh Nhân',
@@ -201,6 +296,7 @@ export function PatientProvider({ children }: { children: ReactNode }) {
   });
 
   const [appointments, setAppointments] = useState(initialAppointments);
+  const [medicalRecords] = useState(initialMedicalRecords);
   const [consultations, setConsultations] = useState(initialConsultations);
   const [doctorConsultations, setDoctorConsultations] = useState(initialDoctorConsultations);
   const [notifications, setNotifications] = useState<PatientNotification[]>([
@@ -377,6 +473,7 @@ export function PatientProvider({ children }: { children: ReactNode }) {
       value={{
         profile,
         appointments,
+        medicalRecords,
         consultations,
         notifications,
         doctorConsultations,

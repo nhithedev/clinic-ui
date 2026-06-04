@@ -87,7 +87,7 @@ const initialAppointments: Appointment[] = [
   {
     id: 1,
     patient: initialPatients[0],
-    requestedDate: '2026-06-02',
+    requestedDate: '2026-06-05',
     requestedTime: '09:00',
     reason: 'Đau đầu kéo dài 3 ngày, chóng mặt',
     priority: 'high',
@@ -98,7 +98,7 @@ const initialAppointments: Appointment[] = [
   {
     id: 2,
     patient: initialPatients[1],
-    requestedDate: '2026-06-03',
+    requestedDate: '2026-06-05',
     requestedTime: '10:30',
     reason: 'Tái khám sau điều trị viêm dạ dày',
     priority: 'medium',
@@ -109,7 +109,7 @@ const initialAppointments: Appointment[] = [
   {
     id: 3,
     patient: initialPatients[2],
-    requestedDate: '2026-06-02',
+    requestedDate: '2026-06-05',
     requestedTime: '14:00',
     reason: 'Ho, sốt nhẹ',
     priority: 'medium',
@@ -120,16 +120,16 @@ const initialAppointments: Appointment[] = [
   {
     id: 4,
     patient: initialPatients[3],
-    date: '2026-06-01',
-    time: '09:30',
+    date: '2026-06-04',
+    time: '17:00',
     reason: 'Khám sức khỏe định kỳ',
     status: 'confirmed'
   },
   {
     id: 5,
     patient: initialPatients[4],
-    date: '2026-06-01',
-    time: '11:00',
+    date: '2026-06-05',
+    time: '17:00',
     reason: 'Kiểm tra huyết áp',
     status: 'confirmed'
   },
@@ -145,16 +145,16 @@ const initialAppointments: Appointment[] = [
   {
     id: 7,
     patient: initialPatients[0],
-    date: '2026-06-05',
-    time: '10:00',
+    date: '2026-06-10',
+    time: '18:00',
     reason: 'Khám tim mạch',
     status: 'confirmed'
   },
   {
     id: 8,
     patient: initialPatients[1],
-    date: '2026-06-05',
-    time: '14:00',
+    date: '2026-06-04',
+    time: '18:00',
     reason: 'Tái khám dạ dày',
     status: 'confirmed'
   },
@@ -165,7 +165,16 @@ const initialAppointments: Appointment[] = [
     time: '09:00',
     reason: 'Khám tổng quát',
     status: 'confirmed'
-  }
+  },
+  {
+    id: 10,
+    patient: initialPatients[5],
+    date: '2026-05-30',
+    time: '09:00',
+    reason: 'Đau bụng',
+    diagnosis: 'Đau dạ dày',
+    status: 'completed'
+  },
 ];
 
 const initialConsultations: Consultation[] = [
@@ -174,7 +183,7 @@ const initialConsultations: Consultation[] = [
     patient: initialPatients[0],
     summary: 'Hỏi về tác dụng phụ của thuốc kháng sinh đang dùng',
     priority: 'high',
-    lastMessageTime: '2026-06-05T14:30:00',
+    lastMessageTime: '2026-06-02T14:30:00',
     status: 'pending',
     aiSummary: 'Bệnh nhân đang dùng Amoxicillin và xuất hiện triệu chứng buồn nôn, chóng mặt nhẹ. AI đã tư vấn sơ bộ về tác dụng phụ thường gặp nhưng bệnh nhân muốn được bác sĩ xác nhận và tư vấn thêm.',
     messages: [
@@ -182,19 +191,19 @@ const initialConsultations: Consultation[] = [
         id: 1,
         sender: 'patient',
         content: 'Chào bác sĩ, em đang uống thuốc Amoxicillin mà thấy hơi buồn nôn và chóng mặt. Có sao không ạ?',
-        timestamp: '2026-06-05T14:25:00'
+        timestamp: '2026-06-02T14:25:00'
       },
       {
         id: 2,
         sender: 'ai',
         content: 'Xin chào! Buồn nôn và chóng mặt nhẹ là tác dụng phụ thường gặp của Amoxicillin. Tuy nhiên, tôi khuyên bạn nên liên hệ với bác sĩ để được tư vấn cụ thể hơn về tình trạng của bạn.',
-        timestamp: '2026-06-05T14:26:00'
+        timestamp: '2026-06-02T14:26:00'
       },
       {
         id: 3,
         sender: 'patient',
         content: 'Em có cần ngừng uống thuốc không ạ? Em lo quá.',
-        timestamp: '2026-06-05T14:30:00'
+        timestamp: '2026-06-02T14:30:00'
       }
     ]
   },
@@ -203,7 +212,7 @@ const initialConsultations: Consultation[] = [
     patient: initialPatients[1],
     summary: 'Tư vấn chế độ ăn sau điều trị viêm dạ dày',
     priority: 'medium',
-    lastMessageTime: '2026-06-05T10:15:00',
+    lastMessageTime: '2026-06-02T10:15:00',
     status: 'pending',
     aiSummary: 'Bệnh nhân đã hoàn thành đợt điều trị viêm dạ dày và hỏi về chế độ dinh dưỡng phù hợp. AI đã cung cấp thông tin cơ bản nhưng bệnh nhân cần tư vấn chi tiết hơn từ bác sĩ.',
     messages: [
@@ -211,19 +220,19 @@ const initialConsultations: Consultation[] = [
         id: 1,
         sender: 'patient',
         content: 'Bác sĩ ơi, em vừa uống thuốc điều trị viêm dạ dày xong. Bây giờ em nên ăn gì để tránh tái phát ạ?',
-        timestamp: '2026-06-05T10:10:00'
+        timestamp: '2026-06-02T10:10:00'
       },
       {
         id: 2,
         sender: 'ai',
         content: 'Sau điều trị viêm dạ dày, bạn nên ăn nhẹ, tránh đồ cay nóng, cà phê và rượu bia. Ăn nhiều bữa nhỏ trong ngày thay vì ít bữa lớn.',
-        timestamp: '2026-06-05T10:11:00'
+        timestamp: '2026-06-02T10:11:00'
       },
       {
         id: 3,
         sender: 'patient',
         content: 'Em có thể ăn trái cây chua như cam, chanh không ạ?',
-        timestamp: '2026-06-05T10:15:00'
+        timestamp: '2026-06-02T10:15:00'
       }
     ]
   },
@@ -232,7 +241,7 @@ const initialConsultations: Consultation[] = [
     patient: initialPatients[2],
     summary: 'Hỏi về kết quả xét nghiệm máu',
     priority: 'low',
-    lastMessageTime: '2026-06-04T16:45:00',
+    lastMessageTime: '2026-06-03T16:45:00',
     status: 'resolved',
     aiSummary: 'Bệnh nhân nhận được kết quả xét nghiệm máu và có một số chỉ số hơi cao. Bác sĩ đã giải thích chi tiết và tư vấn.',
     messages: [
@@ -240,31 +249,31 @@ const initialConsultations: Consultation[] = [
         id: 1,
         sender: 'patient',
         content: 'Bác sĩ cho em hỏi về kết quả xét nghiệm máu của em ạ. Em thấy có mấy chỉ số đỏ.',
-        timestamp: '2026-06-04T16:30:00'
+        timestamp: '2026-06-03T16:30:00'
       },
       {
         id: 2,
         sender: 'ai',
         content: 'Tôi đã xem kết quả của bạn. Có một số chỉ số cao hơn bình thường một chút, nhưng để được tư vấn chính xác, bạn nên đợi bác sĩ giải thích chi tiết.',
-        timestamp: '2026-06-04T16:31:00'
+        timestamp: '2026-06-03T16:31:00'
       },
       {
         id: 3,
         sender: 'patient',
         content: 'Em lo lắm bác sĩ ơi.',
-        timestamp: '2026-06-04T16:35:00'
+        timestamp: '2026-06-03T16:35:00'
       },
       {
         id: 4,
         sender: 'doctor',
         content: 'Chào em, mình đã xem kết quả rồi. Chỉ số cholesterol của em cao hơn một chút so với mức bình thường, nhưng chưa đến mức nguy hiểm. Em chỉ cần điều chỉnh chế độ ăn, tập thể dục đều đặn là được.',
-        timestamp: '2026-06-04T16:40:00'
+        timestamp: '2026-06-03T16:40:00'
       },
       {
         id: 5,
         sender: 'patient',
         content: 'Dạ em cảm ơn bác sĩ ạ. Em sẽ chú ý hơn.',
-        timestamp: '2026-06-04T16:45:00'
+        timestamp: '2026-06-03T16:45:00'
       }
     ]
   }

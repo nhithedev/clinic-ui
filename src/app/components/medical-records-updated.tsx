@@ -185,10 +185,10 @@ export function MedicalRecords() {
       {/* ── Patient table (no patient selected) ── */}
       {!selectedPatient && (
         <div className="flex-1 min-h-0 flex flex-col bg-white rounded-3xl overflow-hidden">
-          <div className="flex-shrink-0 px-6 py-4 border-b border-[#E5E7EB]">
+          <div className="flex-shrink-0 px-6 py-4">
             <h2 className="text-[#1F4A51] font-semibold">Danh sách bệnh nhân</h2>
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 mb-4">
             <table className="w-full">
               <thead className="sticky top-0 bg-[#F5F5F7] z-10">
                 <tr>
