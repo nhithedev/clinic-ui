@@ -27,9 +27,11 @@ Patient registration: use **Đăng ký** on login (mock OTP: `123456`).
 ## Project Structure
 
 - `src/app/App.tsx` — routing by role
-- `src/app/components/` — feature screens
-- `src/app/components/layout/` — SharedLayout, wrappers, KPI
+- `src/app/components/doctor/` — doctor role screens
+- `src/app/components/manager/` — manager role screens
+- `src/app/components/ai-trainer/` — AI trainer role screens
 - `src/app/components/patient/` — patient role screens
+- `src/app/components/layout/` — SharedLayout, wrappers, KPI
 - `src/styles/tokens.css` — **color SSOT**
 - `docs/design/` — design direction & patient flows
 
@@ -45,14 +47,14 @@ Patient registration: use **Đăng ký** on login (mock OTP: `123456`).
 - React 18, TypeScript, Vite  
 - Tailwind CSS, tailwindcss-animate  
 - Shadcn UI (Radix primitives)  
-- recharts, react-day-picker, cmdk, vaul, embla-carousel, next-themes  
+- recharts, react-apexcharts, react-day-picker, cmdk, vaul, embla-carousel, next-themes  
 - React Hook Form, Sonner  
 
 ## Available Screens
 
-See [SCREEN_MAP.md](SCREEN_MAP.md).
+See [SCREEN_MAP.md](docs/SCREEN_MAP.md).
 
-**Patient (new):** Home, Book appointment wizard, My appointments, Symptom consultation, Consultation history, Notifications, Profile.
+**Patient:** Symptom consultation (default), Appointment overview, Consultation history, Doctor consultations, Medical records, Notifications, Profile.
 
 **Staff:** Login, dashboards, role-specific pages (see SCREEN_MAP).
 
@@ -66,7 +68,7 @@ See [SCREEN_MAP.md](SCREEN_MAP.md).
 
 | Doc | Purpose |
 |-----|---------|
-| [DESIGN_TOKENS.md](DESIGN_TOKENS.md) | Colors & usage (VI + EN) |
-| [LAYOUT_SETUP_GUIDE.md](LAYOUT_SETUP_GUIDE.md) | Layout components |
+| [DESIGN_TOKENS.md](docs/DESIGN_TOKENS.md) | Colors & usage (VI + EN) |
+| [LAYOUT_SETUP_GUIDE.md](docs/LAYOUT_SETUP_GUIDE.md) | Layout components |
 | [docs/design/PATIENT_SCREEN_MAP.md](docs/design/PATIENT_SCREEN_MAP.md) | Patient pages |
 | [docs/design/PATIENT_USERFLOWS.md](docs/design/PATIENT_USERFLOWS.md) | Patient flows |

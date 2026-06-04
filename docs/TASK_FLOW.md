@@ -282,7 +282,7 @@ Sidebar phải (chỉ hiện ở Dashboard)
 
 ### 3.1 Dashboard Bác sĩ
 
-**Component:** [`src/app/components/doctor-dashboard.tsx`](src/app/components/doctor-dashboard.tsx)
+**Component:** [`src/app/components/doctor/doctor-dashboard.tsx`](src/app/components/doctor/doctor-dashboard.tsx)
 
 ```
 [Dashboard]
@@ -298,7 +298,7 @@ Sidebar phải (chỉ hiện ở Dashboard)
 
 ### 3.2 Quản lý lịch hẹn
 
-**Component:** [`src/app/components/appointments-management.tsx`](src/app/components/appointments-management.tsx)
+**Component:** [`src/app/components/doctor/appointments-management.tsx`](src/app/components/doctor/appointments-management.tsx)
 
 **Nhiệm vụ chính:** Duyệt / từ chối lịch hẹn, xem lịch hẹn theo ngày
 
@@ -319,7 +319,7 @@ Sidebar phải (chỉ hiện ở Dashboard)
           Danh sách lịch hẹn đã duyệt (chỉ xem)
 
 [Chế độ Lịch]
-  CalendarView: [`src/app/components/calendar-view.tsx`](src/app/components/calendar-view.tsx)
+  CalendarView: [`src/app/components/doctor/calendar-view.tsx`](src/app/components/doctor/calendar-view.tsx)
   ├── Xem lịch hẹn theo tuần (bắt đầu Thứ 2)
   ├── Click ô ngày → Xem lịch hẹn ngày đó
   └── Nút Info → Popup hướng dẫn sử dụng
@@ -329,7 +329,7 @@ Sidebar phải (chỉ hiện ở Dashboard)
 
 ### 3.3 Hồ sơ khám
 
-**Component:** [`src/app/components/medical-records-updated.tsx`](src/app/components/medical-records-updated.tsx)
+**Component:** [`src/app/components/doctor/medical-records.tsx`](src/app/components/doctor/medical-records.tsx)
 
 **Nhiệm vụ chính:** Tạo và quản lý bệnh án cho bệnh nhân
 
@@ -355,7 +355,7 @@ Sidebar phải (chỉ hiện ở Dashboard)
 
 ### 3.4 Giải đáp thắc mắc
 
-**Component:** [`src/app/components/consultations-list.tsx`](src/app/components/consultations-list.tsx) → [`src/app/components/consultation-chat.tsx`](src/app/components/consultation-chat.tsx)
+**Component:** [`src/app/components/doctor/consultations-list.tsx`](src/app/components/doctor/consultations-list.tsx) → [`src/app/components/doctor/consultation-chat.tsx`](src/app/components/doctor/consultation-chat.tsx)
 
 **Nhiệm vụ chính:** Phản hồi các câu hỏi / tư vấn từ bệnh nhân
 
@@ -376,7 +376,7 @@ Sidebar phải (chỉ hiện ở Dashboard)
 
 ### 3.5 Hồ sơ cá nhân (Bác sĩ)
 
-**Component:** [`src/app/components/doctor-profile.tsx`](src/app/components/doctor-profile.tsx)
+**Component:** [`src/app/components/doctor/doctor-profile.tsx`](src/app/components/doctor/doctor-profile.tsx)
 
 ```
 [Trang hồ sơ]
@@ -409,13 +409,12 @@ Sidebar phải (Dashboard)
 
 ### 4.1 Dashboard Quản lý
 
-**Component:** [`src/app/components/manager-dashboard.tsx`](src/app/components/manager-dashboard.tsx)
+**Component:** [`src/app/components/manager/manager-dashboard.tsx`](src/app/components/manager/manager-dashboard.tsx)
 
 ```
 [Dashboard]
   ├── KPI cards: Lượt khám hôm nay | Lịch hẹn hôm nay | Bệnh nhân mới tuần này
-  ├── Biểu đồ thống kê độ tuổi bệnh nhân (ApexChart)
-  └── Feed hoạt động gần đây
+  └── Biểu đồ thống kê độ tuổi bệnh nhân (ApexChart — bar chart: Trẻ em / Người trưởng thành / Người già)
 
 [Sidebar phải]
   ├── Lịch hoạt động (đánh dấu ngày có sự kiện)
@@ -427,7 +426,7 @@ Sidebar phải (Dashboard)
 
 ### 4.2 Quản lý tài khoản
 
-**Component:** [`src/app/components/account-management-updated.tsx`](src/app/components/account-management-updated.tsx)
+**Component:** [`src/app/components/manager/account-management.tsx`](src/app/components/manager/account-management.tsx)
 
 **Nhiệm vụ chính:** Tạo, chỉnh sửa tài khoản nhân viên
 
@@ -451,7 +450,7 @@ Sidebar phải (Dashboard)
 
 ### 4.3 Quản lý lịch làm việc
 
-**Component:** [`src/app/components/schedule-management.tsx`](src/app/components/schedule-management.tsx)
+**Component:** [`src/app/components/manager/schedule-management.tsx`](src/app/components/manager/schedule-management.tsx)
 
 **Nhiệm vụ chính:** Phân công ca làm việc cho nhân viên
 
@@ -487,7 +486,7 @@ Sidebar (trái)
 
 ### 5.1 Dashboard AI Trainer
 
-**Component:** [`src/app/components/ai-trainer-dashboard.tsx`](src/app/components/ai-trainer-dashboard.tsx)
+**Component:** [`src/app/components/ai-trainer/ai-trainer-dashboard.tsx`](src/app/components/ai-trainer/ai-trainer-dashboard.tsx)
 
 ```
 [Dashboard]
@@ -501,7 +500,7 @@ Sidebar (trái)
 
 ### 5.2 Dữ liệu & Huấn luyện
 
-**Component:** [`src/app/components/training-management.tsx`](src/app/components/training-management.tsx) → [`src/app/components/request-detail.tsx`](src/app/components/request-detail.tsx) → [`src/app/components/training-results.tsx`](src/app/components/training-results.tsx)
+**Component:** [`src/app/components/ai-trainer/training-management.tsx`](src/app/components/ai-trainer/training-management.tsx) → [`src/app/components/ai-trainer/request-detail.tsx`](src/app/components/ai-trainer/request-detail.tsx) → [`src/app/components/ai-trainer/training-results.tsx`](src/app/components/ai-trainer/training-results.tsx)
 
 **Nhiệm vụ chính:** Tạo yêu cầu huấn luyện, quản lý dữ liệu và xem kết quả
 
@@ -534,7 +533,7 @@ Sidebar (trái)
 
 ### 5.3 Cấu hình Prompt
 
-**Component:** [`src/app/components/prompt-configuration.tsx`](src/app/components/prompt-configuration.tsx)
+**Component:** [`src/app/components/ai-trainer/prompt-configuration.tsx`](src/app/components/ai-trainer/prompt-configuration.tsx)
 
 ```
 [Trang cấu hình]

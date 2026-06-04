@@ -58,7 +58,7 @@ flex h-screen overflow-hidden                          ← root, prevents body s
 
 #### Doctor layout specifics (updated 2026-06-03)
 
-**DoctorDashboard** (`src/app/components/doctor-dashboard.tsx`) — updated 2026-06-03:
+**DoctorDashboard** (`src/app/components/doctor/doctor-dashboard.tsx`) — updated 2026-06-03:
 - Root div: `flex flex-col gap-6 h-full` (fills section, fixed-height page pattern)
 - Stats grid: `grid grid-cols-1 md:grid-cols-3 gap-6 flex-shrink-0`
 - **"Lịch hẹn sắp tới" card** (replaces the ApexChart as of 2026-06-03): `bg-white rounded-3xl p-4 flex-1 min-h-0 flex flex-col`
@@ -67,7 +67,7 @@ flex h-screen overflow-hidden                          ← root, prevents body s
   - Fade-out gradient at bottom; "Xem tất cả" button navigates to `appointments` via `onNavigate` prop
   - Data: `appointments.filter(confirmed).map(time/patient.name/reason)` — no `.slice()` cap
 
-**AppointmentsManagement** (`src/app/components/appointments-management.tsx`) — updated 2026-06-03:
+**AppointmentsManagement** (`src/app/components/doctor/appointments-management.tsx`) — updated 2026-06-03:
 - Root: `h-full flex flex-col overflow-hidden p-6`
 - Toolbar (search + filters): `flex-shrink-0`
 - **Calendar mode**: wrapped in `flex-1 min-h-0 overflow-y-auto`
@@ -81,7 +81,7 @@ flex h-screen overflow-hidden                          ← root, prevents body s
 - Content: `flex-1 min-h-0 overflow-y-auto p-6` — scrollable
 - Actions (Từ chối / Tiếp nhận): `flex-shrink-0` with `border-t` — pinned at bottom, never obscured by footer
 
-**ConsultationsList** (`src/app/components/consultations-list.tsx`) — updated 2026-06-03:
+**ConsultationsList** (`src/app/components/doctor/consultations-list.tsx`) — updated 2026-06-03:
 - Root: `h-full flex flex-col overflow-hidden p-6`
 - Stats grid + filter bar: `flex-shrink-0`
 - Consultations list: `flex-1 min-h-0 overflow-y-auto space-y-4`
@@ -99,7 +99,7 @@ flex h-screen overflow-hidden                          ← root, prevents body s
 - **Fixed height**: grid always padded to 42 cells (`while (days.length < 42) days.push(null)`) — consistent height across months with 4, 5, or 6 weeks
 - **Hướng dẫn popup**: inline instructions removed; replaced with `<Info>` button in the header that toggles an `absolute` popup; closes on click-outside via `useRef` + `useEffect`
 
-#### ManagerDashboard (`src/app/components/manager-dashboard.tsx`) — updated 2026-06-03
+#### ManagerDashboard (`src/app/components/manager/manager-dashboard.tsx`) — updated 2026-06-03
 
 - KPI cards grid: `grid grid-cols-1 md:grid-cols-3 gap-6`
 - **Age statistics chart** (replaces "Hoạt động gần đây" as of 2026-06-03): `flex-1 flex flex-col min-h-0` wrapper → `rounded-3xl flex flex-col flex-1 min-h-0 overflow-hidden` white card
@@ -152,9 +152,9 @@ UI labels are in **Vietnamese**; code identifiers (variables, props, types, page
 
 ## Key Reference Docs
 
-These files in the repo root give deeper detail:
+These files in `docs/` give deeper detail:
 
-- `CODING_CONVENTIONS.md` — color usage rules, file placement, language rules
-- `DESIGN_TOKENS.md` — full color palette with usage rules
-- `LAYOUT_SETUP_GUIDE.md` — SharedLayout API, component props, migration guide
-- `SCREEN_MAP.md` — routing table mapping page IDs to components for all roles
+- `docs/CODING_CONVENTIONS.md` — color usage rules, file placement, language rules
+- `docs/DESIGN_TOKENS.md` — full color palette with usage rules
+- `docs/LAYOUT_SETUP_GUIDE.md` — SharedLayout API, component props, migration guide
+- `docs/SCREEN_MAP.md` — routing table mapping page IDs to components for all roles
